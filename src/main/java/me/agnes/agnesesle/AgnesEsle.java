@@ -1,6 +1,9 @@
 package me.agnes.agnesesle;
 
-import me.agnes.agnesesle.commands.EsleCommand;
+import co.aikar.commands.BukkitCommandIssuer;
+import co.aikar.commands.PaperCommandManager;
+import com.bentahsin.benthpapimanager.BenthPAPIManager;
+import me.agnes.agnesesle.commands.EsleCommandACF;
 import me.agnes.agnesesle.discord.DiscordBot;
 import me.agnes.agnesesle.data.EslestirmeManager;
 import me.agnes.agnesesle.util.MessageUtil;
@@ -10,8 +13,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class AgnesEsle extends JavaPlugin {
 
@@ -39,17 +42,33 @@ public class AgnesEsle extends JavaPlugin {
         MessageUtil.load();
         MessageUtil.setLang(getConfig().getString("lang", "tr"));
 
-        EsleCommand esleCommand = new EsleCommand();
-        if (getCommand("hesapesle") != null) {
-            Objects.requireNonNull(getCommand("hesapesle")).setExecutor(esleCommand);
-            Objects.requireNonNull(getCommand("hesapesle")).setTabCompleter(esleCommand);
-        } else {
-            getLogger().severe("Komut bulunamadı: hesapesle!");
-        }
+        PaperCommandManager commandManager = new PaperCommandManager(this);
+        commandManager.getCommandContexts().registerContext(BukkitCommandIssuer.class, c -> {
+            return commandManager.getCommandIssuer(c.getSender());
+        });
+
+        commandManager.getCommandCompletions().registerAsyncCompletion("@players", c -> {
+            return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+        });
+
+        commandManager.registerCommand(new EsleCommandACF());
 
         EslestirmeManager.init();
 
         getServer().getPluginManager().registerEvents(new me.agnes.agnesesle.listener.PlayerLoginListener(), this);
+
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            try {
+                BenthPAPIManager papiManager = new BenthPAPIManager(this);
+                papiManager.registerPlaceholders("me.agnes.agnesesle.placeholders");
+                getLogger().info("PlaceholderAPI desteği başarıyla etkinleştirildi.");
+            } catch (Exception e) {
+                getLogger().severe("BenthPAPIManager başlatılırken bir hata oluştu!");
+                getLogger().warning(e.getMessage());
+            }
+        } else {
+            getLogger().warning("PlaceholderAPI bulunamadı, placeholder'lar yüklenemedi.");
+        }
 
         getLogger().info("[AgnHesapEsle] Plugin başarıyla yüklendi!");
     }
