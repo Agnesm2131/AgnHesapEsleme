@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@CommandAlias("hesapesle|hesapeşle")
+@CommandAlias("%main_cmd")
 @Description("AgnHesapEsle ana komutu.")
 public class EsleCommandACF extends BaseCommand {
     private final AgnesEsle plugin;
@@ -37,7 +37,7 @@ public class EsleCommandACF extends BaseCommand {
     }
 
     @SuppressWarnings("unused")
-    @Subcommand("eşle")
+    @Subcommand("%sub_esle")
     @Description("Discord hesabınla eşleşmek için kod üretir.")
     public void onEsle(Player player) {
         if (EslestirmeManager.beklemeVar(player.getUniqueId())) {
@@ -62,7 +62,7 @@ public class EsleCommandACF extends BaseCommand {
 
 
     @SuppressWarnings("unused")
-    @Subcommand("iptal")
+    @Subcommand("%sub_iptal")
     @Description("Bekleyen eşleşme kodunu iptal eder.")
     public void onIptal(Player player) {
         if (!EslestirmeManager.beklemeVar(player.getUniqueId())) {
@@ -80,7 +80,7 @@ public class EsleCommandACF extends BaseCommand {
     }
 
     @SuppressWarnings("unused")
-    @Subcommand("onayla")
+    @Subcommand("%sub_onayla")
     @Description("Discord'dan gelen eşleşme talebini onaylar.")
     public void onOnayla(BukkitCommandIssuer issuer) {
         Player player = issuer.getPlayer();
@@ -106,10 +106,10 @@ public class EsleCommandACF extends BaseCommand {
         MessageUtil.sendTitle(player, "eslesme-basariyla-tamamlandi");
 
         if (ilkEslesme) {
-            Bukkit.getScheduler().runTask(AgnesEsle.getInstance(), () -> {
-                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
-                player.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, player.getLocation().add(0, 1, 0), 15, 0.5, 0.5, 0.5);
+            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
+            player.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, player.getLocation().add(0, 1, 0), 15, 0.5, 0.5, 0.5);
 
+            Bukkit.getScheduler().runTaskAsynchronously(AgnesEsle.getInstance(), () -> {
                 String discordId = EslestirmeManager.getDiscordId(player.getUniqueId());
                 if (discordId != null) {
                     DiscordBot bot = AgnesEsle.getInstance().getDiscordBot();
@@ -119,7 +119,6 @@ public class EsleCommandACF extends BaseCommand {
                     if (lpUtil != null) {
                         String group = lpUtil.getPrimaryGroup(player.getUniqueId());
                         if (group != null) {
-
                             ConfigurationSection rolesSection = AgnesEsle.getInstance().getConfig().getConfigurationSection("roles");
                             if (rolesSection != null) {
                                 for (String roleName : rolesSection.getKeys(false)) {
@@ -128,7 +127,7 @@ public class EsleCommandACF extends BaseCommand {
 
                                     if (group.equalsIgnoreCase(roleName)) {
                                         bot.addRoleToMember(discordId, roleId);
-                                        Bukkit.getLogger().info(player.getName() + " oyuncusuna " + roleName + " Discord rolü verildi.");
+                                        plugin.getLogger().info(player.getName() + " oyuncusuna " + roleName + " Discord rolü verildi.");
                                     }
                                 }
                             }
@@ -140,7 +139,7 @@ public class EsleCommandACF extends BaseCommand {
     }
 
     @SuppressWarnings("unused")
-    @Subcommand("kaldır|kaldir")
+    @Subcommand("%sub_kaldir")
     @Description("Mevcut hesap eşleşmesini kaldırır.")
     public void onKaldir(Player player) {
         if (!EslestirmeManager.eslesmeVar(player.getUniqueId())) {
@@ -154,7 +153,7 @@ public class EsleCommandACF extends BaseCommand {
     }
 
     @SuppressWarnings("unused")
-    @Subcommand("2fa")
+    @Subcommand("%sub_2fa")
     @CommandCompletion("aç|kapat")
     @Description("İki faktörlü kimlik doğrulamayı yönetir.")
     public void on2fa(Player player, String durum) {
@@ -188,7 +187,7 @@ public class EsleCommandACF extends BaseCommand {
     }
 
     @SuppressWarnings("unused")
-    @Subcommand("liste")
+    @Subcommand("%sub_liste")
     @CommandPermission("agnesesle.admin")
     @Description("Eşleşmiş tüm oyuncuları listeler.")
     @Syntax("[sayfa]")
@@ -230,7 +229,7 @@ public class EsleCommandACF extends BaseCommand {
     }
 
     @SuppressWarnings("unused")
-    @Subcommand("sıfırla|sifirla")
+    @Subcommand("%sub_sifirla")
     @CommandPermission("agnesesle.admin")
     @Description("Bir oyuncunun hesap eşleşmesini sıfırlar.")
     @CommandCompletion("@players")
@@ -254,7 +253,7 @@ public class EsleCommandACF extends BaseCommand {
     }
 
     @SuppressWarnings("unused")
-    @Subcommand("ödül|odul")
+    @Subcommand("%sub_odul")
     @CommandPermission("agnesesle.admin")
     @Description("Bir oyuncuya manuel olarak eşleşme ödülünü verir.")
     @CommandCompletion("@players")
@@ -285,7 +284,7 @@ public class EsleCommandACF extends BaseCommand {
     }
 
     @SuppressWarnings("unused")
-    @Subcommand("yenile")
+    @Subcommand("%sub_yenile")
     @CommandPermission("agnesesle.admin")
     @Description("Konfigürasyon ve dil dosyalarını yeniden yükler.")
     public void onYenile(Player sender) {
