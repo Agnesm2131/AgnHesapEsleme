@@ -65,9 +65,15 @@ public class MainConfig {
         roles.put("mvipplus", "");
     }
 
+<<<<<<< HEAD
     @Comment("Information Settings")
     @ConfigPath("information-sent")
     public boolean informationSent = false;
+=======
+    @Comment("Information Settings: gönderildi/gönderilmedi")
+    @ConfigPath("information-message")
+    public String informationMessage = "gönderilmedi";
+>>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
 
     @ConfigPath("information-channel-id")
     public String informationChannelId = "information-channel-id";

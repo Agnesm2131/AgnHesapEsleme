@@ -6,6 +6,10 @@ import com.bentahsin.benthpapimanager.BenthPAPIManager;
 import com.bentahsin.configuration.Configuration;
 import me.agnes.agnesesle.commands.EsleCommandACF;
 import me.agnes.agnesesle.configuration.MainConfig;
+<<<<<<< HEAD
+=======
+import me.agnes.agnesesle.data.DatabaseManager;
+>>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
 import me.agnes.agnesesle.discord.DiscordBot;
 import me.agnes.agnesesle.data.EslestirmeManager;
 import me.agnes.agnesesle.listener.PlayerLoginListener;
@@ -53,6 +57,11 @@ public class AgnesEsle extends JavaPlugin {
         this.configManager = new Configuration(this);
         this.mainConfig = new MainConfig();
         this.configManager.init(mainConfig, "config.yml");
+<<<<<<< HEAD
+=======
+
+        DatabaseManager.init();
+>>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
 
         try {
             this.luckPerms = LuckPermsProvider.get();
@@ -249,7 +258,7 @@ public class AgnesEsle extends JavaPlugin {
     }
 
 
-     // ödül Verme İşlevi
+
     public void odulVer(UUID uuid) {
         Player player = Bukkit.getPlayer(uuid);
         if (player != null && player.isOnline()) {

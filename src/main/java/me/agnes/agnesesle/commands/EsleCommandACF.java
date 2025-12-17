@@ -265,11 +265,14 @@ public class EsleCommandACF extends BaseCommand {
             MessageUtil.sendTitle(sender, "oyuncu-bulunamadi");
             return;
         }
+
         UUID targetUUID = target.getUniqueId();
+
         if (!EslestirmeManager.eslesmeVar(targetUUID)) {
             sender.sendMessage(MessageUtil.getMessage("odul-not-linked"));
             return;
         }
+
         if (EslestirmeManager.odulVerildiMi(targetUUID)) {
             sender.sendMessage(MessageUtil.getMessage("odul-already-given"));
             return;
@@ -277,7 +280,6 @@ public class EsleCommandACF extends BaseCommand {
 
         AgnesEsle.getInstance().odulVer(targetUUID);
         EslestirmeManager.odulVerildi(targetUUID);
-        EslestirmeManager.saveOdulVerilenler();
 
         Map<String, String> vars = new HashMap<>();
         vars.put("player", target.getName());

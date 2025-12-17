@@ -59,14 +59,13 @@ public class DiscordBot extends ListenerAdapter {
         }
     }
 
-    private static final long ESLE_COOLDOWN_SECONDS = 60; // 1 dakika
-    private static final long REPORT_COOLDOWN_SECONDS = 300; // 5 dakika
+    private static final long ESLE_COOLDOWN_SECONDS = 60;
+    private static final long REPORT_COOLDOWN_SECONDS = 300;
 
     private final Logger logger;
     private final String token;
     private JDA jda;
 
-    // Cache'ler
     private final Cache<String, Long> esleCooldowns;
     private final Cache<String, Long> reportCooldowns;
 
@@ -87,7 +86,10 @@ public class DiscordBot extends ListenerAdapter {
 
     }
 
+<<<<<<< HEAD
     // Discord Bot'u Komutları
+=======
+>>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
     public void start() {
         try {
             jda = JDABuilder.createDefault(token)
@@ -112,6 +114,16 @@ public class DiscordBot extends ListenerAdapter {
                     if (jda == null || jda.getStatus() != JDA.Status.CONNECTED) return;
                     if (durumlar == null || durumlar.isEmpty()) return;
 
+<<<<<<< HEAD
+=======
+            final List<String> durumlar = AgnesEsle.getInstance().getMainConfig().statusMessages;
+            new org.bukkit.scheduler.BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (jda == null || jda.getStatus() != JDA.Status.CONNECTED) return;
+                    if (durumlar == null || durumlar.isEmpty()) return;
+
+>>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
                     int index = (int) ((System.currentTimeMillis() / 5000) % durumlar.size());
                     String mesaj = durumlar.get(index);
                     String finalMesaj = parsePlaceholders(mesaj);
@@ -119,15 +131,23 @@ public class DiscordBot extends ListenerAdapter {
                     jda.getPresence().setActivity(activity);
                 }
             }.runTaskTimer(AgnesEsle.getInstance(), 0L, 100L);
+<<<<<<< HEAD
             if (!AgnesEsle.getInstance().getMainConfig().informationSent) {
+=======
+
+            String infoMessageStatus = AgnesEsle.getInstance().getMainConfig().informationMessage;
+            if ("gönderilmedi".equalsIgnoreCase(infoMessageStatus)) {
+>>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
                 String kanalId = AgnesEsle.getInstance().getMainConfig().informationChannelId;
                 if (kanalId == null || kanalId.isEmpty()) {
                     System.out.println("AgnHesapEşle: Bilgilendirme kanalı ID'si ayarlanmamış.");
                     return;
                 }
+
                 TextChannel kanal = jda.getTextChannelById(kanalId);
                 if (kanal != null) {
                     Guild guild = kanal.getGuild();
+<<<<<<< HEAD
                     String sunucuIkonURL = guild.getIconUrl();
                     EmbedBuilder embed = new EmbedBuilder()
                             .setTitle("🎮 Discord Hesabınızı Minecraft Hesabınızla Eşleyin!")
@@ -156,6 +176,14 @@ public class DiscordBot extends ListenerAdapter {
                                             "  Hesap Eşleştirme / Güvene Alma Sistemi"
                             )
                             .setThumbnail(sunucuIkonURL);
+=======
+                    EmbedBuilder embed = new EmbedBuilder();
+                    embed.setTitle(MessageUtil.getMessage("information-message.title"));
+                    embed.setDescription(MessageUtil.getMessage("information-message.description"));
+                    embed.setColor(new Color(0x2F3136));
+                    embed.setThumbnail(guild.getIconUrl());
+
+>>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
                     kanal.sendMessageEmbeds(embed.build())
                             .setActionRow(
                                     Button.secondary("hesap_durumu", "🔗 Hesap Durumu"),
@@ -164,19 +192,31 @@ public class DiscordBot extends ListenerAdapter {
                                     Button.secondary("odul-kontrol", "🎁 Ödüllerini Kontrol Et!")
                             )
                             .queue();
+<<<<<<< HEAD
                     AgnesEsle.getInstance().getMainConfig().informationSent = true;
                     AgnesEsle.getInstance().getConfigManager().save(AgnesEsle.getInstance().getMainConfig(), "config.yml");
                 }
             }
+=======
+
+                    AgnesEsle.getInstance().getMainConfig().informationMessage = "gönderildi";
+                    AgnesEsle.getInstance().getConfigManager().save(AgnesEsle.getInstance().getMainConfig(), "config.yml");
+                }
+            }
+
+>>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
         } catch (Exception e) {
-            logger.warning(e.getMessage());
+            e.printStackTrace();
         }
     }
 
 
 
     @SuppressWarnings("deprecation")
+<<<<<<< HEAD
     // Bilgilendirme Mesajındaki Buton İşlevleri
+=======
+>>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
         String id = event.getComponentId();
@@ -217,7 +257,7 @@ public class DiscordBot extends ListenerAdapter {
                 break;
         }
 
-        // 2FA Butonları
+
 
         if (id.startsWith("2fa_confirm_")) {
             try {
@@ -335,7 +375,6 @@ public class DiscordBot extends ListenerAdapter {
 
     @SuppressWarnings("deprecation")
     @Override
-    // Eşle Komutu
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         try {
             if (event.getName().equals("eşle")) {
@@ -411,7 +450,7 @@ public class DiscordBot extends ListenerAdapter {
 
                 logKanali.sendMessageEmbeds(embed.build()).queue();
 
-                setUserCooldown(userId, reportCooldowns); // Cooldown'ı başlat
+                setUserCooldown(userId, reportCooldowns);
                 event.reply(MessageUtil.getMessage("discord-report-success")).setEphemeral(true).queue();
             }
             else if (event.getName().equals("bilgi")) {
@@ -471,7 +510,10 @@ public class DiscordBot extends ListenerAdapter {
     }
 
 
+<<<<<<< HEAD
     // Eşlediğinde Rol Verme İşlevi
+=======
+>>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
     public void addRoleToMember(String discordId, String roleId) {
         String guildId = AgnesEsle.getInstance().getMainConfig().guildId;
         if (guildId == null || guildId.isEmpty()) {
@@ -502,7 +544,6 @@ public class DiscordBot extends ListenerAdapter {
 
 
 
-      // 2FA Gönderme işlevi
     public void send2FAConfirmationMessage(UUID playerUUID, String playerName, String newIpAddress) {
         String discordId = EslestirmeManager.getDiscordId(playerUUID);
         if (discordId == null) {
@@ -536,7 +577,6 @@ public class DiscordBot extends ListenerAdapter {
             logger.warning("2FA onayı için " + discordId + " ID'li kullanıcıya DM gönderilemedi.");
         });
     }
-    //Cooldown
     private boolean isUserOnCooldown(String userId, Cache<String, Long> cooldowns, long cooldownTimeSeconds, net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent event) {
         Long lastUsed = cooldowns.getIfPresent(userId);
 
@@ -569,23 +609,33 @@ public class DiscordBot extends ListenerAdapter {
         return jda;
     }
 
-     //Hesap Durumu Butonu İçin
     private void handleHesapDurumu(ButtonInteractionEvent event) {
         String discordId = event.getUser().getId();
         UUID uuid = EslestirmeManager.getUUIDByDiscordId(discordId);
 
         if (uuid == null) {
+<<<<<<< HEAD
             event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.eslesmemis"))).setEphemeral(true).queue();
+=======
+            event.reply(MessageUtil.stripColors(
+                    MessageUtil.getMessage("discord-hesap-durumu.eslesmemis")
+            )).setEphemeral(true).queue();
+>>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
             return;
         }
 
         String playerName = Bukkit.getOfflinePlayer(uuid).getName();
         boolean is2FA = EslestirmeManager.isIkiFAOpen(uuid);
 
-        File playerDataFile = new File("plugins/AgnesEsle/data.json");
+        long eslesmeMillis = EslestirmeManager.getEslesmeTarihi(uuid);
         long days = 0;
+<<<<<<< HEAD
         if (playerDataFile.exists()) {
             days = (System.currentTimeMillis() - playerDataFile.lastModified()) / (1000 * 60 * 60 * 24);
+=======
+        if (eslesmeMillis > 0) {
+            days = (System.currentTimeMillis() - eslesmeMillis) / (1000L * 60 * 60 * 24);
+>>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
         }
 
         Map<String, String> vars = new HashMap<>();
@@ -594,19 +644,42 @@ public class DiscordBot extends ListenerAdapter {
         EmbedBuilder embed = new EmbedBuilder()
                 .setTitle(MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.embed-baslik")))
                 .setColor(Color.CYAN)
+<<<<<<< HEAD
                 .addField(MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.field-oyuncu")),
                         playerName != null ? playerName : "Bilinmiyor", false)
                 .addField(MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.field-2fa")),
                         is2FA ? MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.acik")) : MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.kapali")), false)
                 .addField(MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.field-tarih")),
                         MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.field-tarih-deger", vars)), false)
+=======
+                .addField(
+                        MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.field-oyuncu")),
+                        playerName != null ? playerName : "Bilinmiyor",
+                        false
+                )
+                .addField(
+                        MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.field-2fa")),
+                        is2FA
+                                ? MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.acik"))
+                                : MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.kapali")),
+                        false
+                )
+                .addField(
+                        MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.field-tarih")),
+                        MessageUtil.stripColors(
+                                MessageUtil.getMessage("discord-hesap-durumu.field-tarih-deger", vars)
+                        ),
+                        false
+                )
+>>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
                 .setFooter(MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.footer")));
 
         event.replyEmbeds(embed.build()).setEphemeral(true).queue();
     }
 
 
-    // Eşleşme Kaldırma Butonu İşlevi
+
+
     private void handleEslesmeyiKaldir(ButtonInteractionEvent event) {
         String discordId = event.getUser().getId();
         UUID uuid = EslestirmeManager.getUUIDByDiscordId(discordId);
@@ -623,7 +696,6 @@ public class DiscordBot extends ListenerAdapter {
 
 
 
-     // Eşleştirme Log Gönderme
     public void sendEslestirmeEmbed(UUID playerUUID, String discordId) {
         OfflinePlayer player = Bukkit.getOfflinePlayer(playerUUID);
         String playerName = player.getName() != null ? player.getName() : "Bilinmiyor";

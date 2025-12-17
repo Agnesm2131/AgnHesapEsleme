@@ -52,7 +52,7 @@ roles:
 
 
 # Information Settings
-information-sent: false
+information-message: "gönderilmedi" # gönderildi/gönderilmedi
 information-channel-id: "information-channel-id"
 
 # Reward Commands

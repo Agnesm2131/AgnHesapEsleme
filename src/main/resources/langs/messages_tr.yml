@@ -51,6 +51,33 @@ yetki-yok:
   title: "§cYetki Yok"
   subtitle: "§7Bu komutu kullanmak için yetkin yok."
 
+
+information-message:
+  title: "🎮 Discord Hesabınızı Minecraft Hesabınızla Eşleyin!"
+  description: |
+    **Nasıl Eşlerim?**
+    1️⃣ Sunucuya girip `/hesapeşle eşle` komutuyla size özel bir kod alın.
+    2️⃣ Bu kanala gelip `/eşle (kod)` komutunu yazın.
+    3️⃣ Oyun içinden `/hesapeşle onayla` komutuyla eşleşmeyi onaylayın.
+
+    **Avantajları Neler?**
+    - Discord kullanıcı adınız Minecraft adınızla değiştirilir.
+    - Discord koruması sayesinde hesabınız güvende olur.
+    - Hesap eşlemesi sonrası oyun içinden ödüller kazanırsınız.
+
+    **Discord-2FA Nedir?**
+    IP değişiminde Discord botu DM üzerinden onay ister, böylece hesabınız korunur.
+    Discord korumasını açmanızı öneriyoruz.
+
+    **Önemli!**
+    - DM’leriniz açık olmalıdır.
+    - Komutlar:
+      `/hesapesle 2fa aç` — Koruma açar
+      `/hesapesle 2fa kapat` — Koruma kapatır
+
+    Hesap Eşleştirme / Güvene Alma Sistemi
+
+
 hatalı-kullanim:
   title: "§cHatalı Kullanım"
   subtitle: "§7Lütfen komutu doğru biçimde kullanın."
