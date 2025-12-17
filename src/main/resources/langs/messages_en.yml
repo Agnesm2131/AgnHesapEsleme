@@ -225,3 +225,35 @@ discord-kaldir-butonu:
 discord-odul-butonu:
   hesap-bulunamadi: "⚠️ Minecraft account not found, or your account is not linked!"
   kontrol-ediliyor: "🎁 Checking reward status..."
+
+
+
+booster-message:
+  title: "💜 Server Boost (Booster) Panel"
+  description: "Thank you for supporting our server by boosting it!"
+  rewards-title: "🎁 Available Booster Rewards"
+  rewards-empty: "No rewards found."
+  footer: "%server% | Boost System"
+  button-claim: "🎁 Claim Rewards"
+  button-status: "📊 View Remaining Time"
+
+eslestirme-message:
+  title: "🔗 Link Your Account and Earn Rewards!"
+  description: |
+    By securely linking your Minecraft account with your Discord account,
+    you can earn rewards and gain extra security benefits.
+  how-title: "📌 How Do I Link?"
+  how-text: |
+    • Join the server and use `/hesapesle eşle`
+    • Enter the code by clicking **Link** in this channel
+    • Complete the process in-game with `/hesapesle onayla <code>`
+  advantages-title: "🎁 Advantages"
+  advantages-text: |
+    • Your Discord username is synced with your Minecraft name
+    • Extra security with Discord protection
+    • Earn **special in-game rewards**
+  footer: "www.servername.com"
+  button-status: "🔗 Account Status"
+  button-link: "✔ Link"
+  button-unlink: "❌ Unlink"
+  button-reward: "🎁 Check Rewards"

@@ -35,7 +35,7 @@ public class MainConfig {
     public List<String> statusMessages = Arrays.asList(
             "ServerName.net",
             "Account Linking System",
-            "{aktifkullanici} Active Players"
+            "{online} Active Players"
     );
 
     @Comment("Channels")
@@ -89,6 +89,36 @@ public class MainConfig {
             "give %player% diamond 1",
             "xp %player% add 100"
     );
+
+    @Comment("Booster System Settings")
+    @ConfigPath("booster-channel-id")
+    public String boosterChannelId = "booster-channel-id";
+
+    @Comment("Booster Ödül Alma Süresi (Saniye)")
+    @ConfigPath("booster-role-time")
+    public long boosterRoleTime = 86400L;
+
+    @ConfigPath("booster-role-id")
+    public String boosterRoleId = "booster-role-id";
+
+    @Comment("Booster Ödül Ayarları")
+    @ConfigPath("booster-rewards")
+    public Map<String, RewardItem> boosterRewards = new HashMap<String, RewardItem>() {{
+    }};
+
+    public static class RewardItem {
+        public String name;
+        public List<String> commands;
+
+        public RewardItem() {
+        }
+
+        public RewardItem(String name, List<String> commands) {
+            this.name = name;
+            this.commands = commands;
+        }
+    }
+
 
     @Comment("Server Settings")
     @ConfigPath("guild-id")

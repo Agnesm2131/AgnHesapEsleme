@@ -27,13 +27,13 @@ token: "DISCORD_BOT_TOKEN"
 status-messages:
   - "ServerName.net"
   - "Account Linking System"
-  - "{aktifkullanici} Active Players"
+  - "{online} Active Players"
 
 
 
 #Channels
 log-channel-id: "log-channel-id"
-log-system: true
+log-system: "true"
 
 # Role ID
 admin-role-id: "admin-role-id"
@@ -50,12 +50,30 @@ roles:
   mvipplus: "" # Rol ID
 
 
+#Booster System
+booster-role-id: "booster-role-id"
+booster-channel-id: "booster-channel-id"
+booster-reward-time: 86400
+
+booster-rewards:
+  5TaneElmas:
+    name: "5 Adet Elmas ve Mesaj"
+    commands:
+      - "give %player% diamond 5"
+      - "msg %player% &dTakviye bastığın için teşekkürler!"
+  1000Para:
+    name: "1000 Oyun Parası"
+    commands:
+      - "eco give %player% 1000"
+
+
 
 # Information Settings
 information-message: "gönderilmedi" # gönderildi/gönderilmedi
 information-channel-id: "information-channel-id"
 
 # Reward Commands
+
 rewards:
   - "give %player% minecraft:diamond 5"
   - "say Congratulations %player% linked their account!"
@@ -73,4 +91,4 @@ guild-id: "" # Your Discord Server (Guild) ID
 # Language options: tr, en, es, fr, de, zh
 lang: en
 
-config-version: 2
+config-version: 3

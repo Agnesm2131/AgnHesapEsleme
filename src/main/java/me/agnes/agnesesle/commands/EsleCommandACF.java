@@ -279,7 +279,7 @@ public class EsleCommandACF extends BaseCommand {
         }
 
         AgnesEsle.getInstance().odulVer(targetUUID);
-        EslestirmeManager.odulVerildi(targetUUID); // DB'ye yazar
+        EslestirmeManager.odulVerildi(targetUUID);
 
         Map<String, String> vars = new HashMap<>();
         vars.put("player", target.getName());
@@ -295,6 +295,7 @@ public class EsleCommandACF extends BaseCommand {
         MessageUtil.yenile();
         playSuccess(sender);
         MessageUtil.sendTitle(sender, "yenilendi");
+        plugin.reloadConfig();
     }
 
     @SuppressWarnings("unused")

@@ -224,3 +224,34 @@ discord-kaldir-butonu:
 discord-odul-butonu:
   hesap-bulunamadi: "⚠️ ¡Cuenta de Minecraft no encontrada, o tu cuenta no está vinculada!"
   kontrol-ediliyor: "🎁 Verificando estado de la recompensa..."
+
+
+booster-message:
+  title: "💜 Panel de Impulso del Servidor (Booster)"
+  description: "¡Gracias por apoyar nuestro servidor con un boost!"
+  rewards-title: "🎁 Recompensas de Booster Disponibles"
+  rewards-empty: "No se encontraron recompensas."
+  footer: "%server% | Sistema de Boost"
+  button-claim: "🎁 Reclamar Recompensas"
+  button-status: "📊 Ver Tiempo Restante"
+
+eslestirme-message:
+  title: "🔗 Vincula tu Cuenta y Gana Recompensas"
+  description: |
+    Al vincular de forma segura tu cuenta de Minecraft con tu cuenta de Discord,
+    puedes ganar recompensas y obtener beneficios de seguridad adicionales.
+  how-title: "📌 ¿Cómo Vinculo?"
+  how-text: |
+    • Entra al servidor y usa `/hesapesle eşle`
+    • Ingresa el código haciendo clic en **Vincular**
+    • Completa el proceso con `/hesapesle onayla <codigo>`
+  advantages-title: "🎁 Ventajas"
+  advantages-text: |
+    • Tu nombre de Discord se sincroniza con Minecraft
+    • Seguridad adicional con protección de Discord
+    • Obtén **recompensas especiales**
+  footer: "www.servername.com"
+  button-status: "🔗 Estado de la Cuenta"
+  button-link: "✔ Vincular"
+  button-unlink: "❌ Desvincular"
+  button-reward: "🎁 Ver Recompensas"

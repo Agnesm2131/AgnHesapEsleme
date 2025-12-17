@@ -224,3 +224,34 @@ discord-kaldir-butonu:
 discord-odul-butonu:
   hesap-bulunamadi: "⚠️ Compte Minecraft introuvable, ou votre compte n'est pas lié !"
   kontrol-ediliyor: "🎁 Vérification du statut de la récompense..."
+
+
+booster-message:
+  title: "💜 Panneau de Boost du Serveur (Booster)"
+  description: "Merci de soutenir notre serveur en le boostant !"
+  rewards-title: "🎁 Récompenses Booster Disponibles"
+  rewards-empty: "Aucune récompense trouvée."
+  footer: "%server% | Système de Boost"
+  button-claim: "🎁 Récupérer les Récompenses"
+  button-status: "📊 Voir le Temps Restant"
+
+eslestirme-message:
+  title: "🔗 Associez votre Compte et Gagnez des Récompenses !"
+  description: |
+    En associant votre compte Minecraft à votre compte Discord de manière sécurisée,
+    vous pouvez gagner des récompenses et bénéficier d’avantages de sécurité supplémentaires.
+  how-title: "📌 Comment Associer ?"
+  how-text: |
+    • Rejoignez le serveur et utilisez `/hesapesle eşle`
+    • Entrez le code en cliquant sur **Associer**
+    • Finalisez avec `/hesapesle onayla <code>` en jeu
+  advantages-title: "🎁 Avantages"
+  advantages-text: |
+    • Votre nom Discord est synchronisé avec Minecraft
+    • Sécurité supplémentaire grâce à Discord
+    • Gagnez des **récompenses spéciales**
+  footer: "www.servername.com"
+  button-status: "🔗 Statut du Compte"
+  button-link: "✔ Associer"
+  button-unlink: "❌ Dissocier"
+  button-reward: "🎁 Vérifier les Récompenses"

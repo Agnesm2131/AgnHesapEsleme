@@ -224,3 +224,34 @@ discord-kaldir-butonu:
 discord-odul-butonu:
   hesap-bulunamadi: "⚠️ 未找到 Minecraft 账号，或者您的账号未绑定！"
   kontrol-ediliyor: "🎁 正在检查奖励状态..."
+
+
+booster-message:
+  title: "💜 服务器加成（Booster）面板"
+  description: "感谢你通过加成为我们的服务器提供支持！"
+  rewards-title: "🎁 可用的 Booster 奖励"
+  rewards-empty: "未找到奖励。"
+  footer: "%server% | 加成系统"
+  button-claim: "🎁 领取奖励"
+  button-status: "📊 查看剩余时间"
+
+eslestirme-message:
+  title: "🔗 绑定账户并获取奖励！"
+  description: |
+    通过将你的 Minecraft 账户与 Discord 账户安全绑定，
+    你可以获得奖励并享受额外的安全优势。
+  how-title: "📌 如何绑定？"
+  how-text: |
+    • 进入服务器并使用 `/hesapesle eşle`
+    • 点击 **绑定** 按钮输入验证码
+    • 在游戏中使用 `/hesapesle onayla <代码>` 完成
+  advantages-title: "🎁 优势"
+  advantages-text: |
+    • Discord 用户名与 Minecraft 名称同步
+    • 通过 Discord 获得额外安全保护
+    • 获得 **专属游戏奖励**
+  footer: "www.servername.com"
+  button-status: "🔗 账户状态"
+  button-link: "✔ 绑定"
+  button-unlink: "❌ 解除绑定"
+  button-reward: "🎁 查看奖励"

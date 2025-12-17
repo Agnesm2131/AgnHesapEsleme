@@ -1,6 +1,8 @@
 package me.agnes.agnesesle.data;
 
 import me.agnes.agnesesle.AgnesEsle;
+import me.agnes.agnesesle.discord.DiscordBot;
+import org.bukkit.Bukkit;
 
 import java.sql.*;
 import java.util.*;
@@ -13,6 +15,7 @@ public class EslestirmeManager {
 
     private static final Map<String, UUID> kodlar = new ConcurrentHashMap<>();
     private static final Map<UUID, String> eslesmeler = new ConcurrentHashMap<>();
+    private static final Map<UUID, Long> boosterZamanlari = new ConcurrentHashMap<>();
     private static final Map<UUID, String> bekleyenEslesmeler = new ConcurrentHashMap<>();
     private static final Map<String, UUID> bekleyenKodlar = new ConcurrentHashMap<>();
     private static final Map<String, Long> kodZamanlari = new ConcurrentHashMap<>();
@@ -24,13 +27,12 @@ public class EslestirmeManager {
     public static void init() {
         loadEslesmeler();
 
-        // Kodların zaman aşımlarını temizleyen task
         AgnesEsle.getInstance().getServer().getScheduler().runTaskTimerAsynchronously(
                 AgnesEsle.getInstance(), new Runnable() {
                     @Override
                     public void run() {
                         long now = System.currentTimeMillis();
-                        long expirationTime = 10 * 60 * 1000; // 10 dakika
+                        long expirationTime = 10 * 60 * 1000;
 
                         Iterator<Map.Entry<String, Long>> it = kodZamanlari.entrySet().iterator();
                         while (it.hasNext()) {
@@ -101,10 +103,8 @@ public class EslestirmeManager {
     }
 
     public static boolean odulVerildiMi(UUID uuid) {
-        // Öncelikle memory'de kontrol et
         if (odulVerildiMap.containsKey(uuid)) return odulVerildiMap.get(uuid);
 
-        // DB'den kontrol
         try {
             Connection conn = DatabaseManager.getConnection();
             PreparedStatement ps = conn.prepareStatement("SELECT odul FROM eslestirmeler WHERE uuid=?");
@@ -117,7 +117,7 @@ public class EslestirmeManager {
             rs.close();
             ps.close();
 
-            odulVerildiMap.put(uuid, verildi); // memory'e kaydet
+            odulVerildiMap.put(uuid, verildi);
             return verildi;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -136,7 +136,7 @@ public class EslestirmeManager {
                         PreparedStatement ps = conn.prepareStatement(
                                 "UPDATE eslestirmeler SET odul=? WHERE uuid=?"
                         );
-                        ps.setInt(1, 1); // 1 = ödül verildi
+                        ps.setInt(1, 1);
                         ps.setString(2, uuid.toString());
                         ps.executeUpdate();
                         ps.close();
@@ -156,26 +156,37 @@ public class EslestirmeManager {
         kayitliIPler.put(uuid, ip);
         ikiFADurumu.put(uuid, false);
 
-        final UUID finalUuid = uuid;
         AgnesEsle.getInstance().getServer().getScheduler().runTaskAsynchronously(
-                AgnesEsle.getInstance(), new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            Connection conn = DatabaseManager.getConnection();
-                            PreparedStatement ps = conn.prepareStatement(
-                                    "INSERT OR REPLACE INTO eslestirmeler (uuid, discord_id, iki_fa, ip, odul) VALUES (?, ?, ?, ?, ?)"
+                AgnesEsle.getInstance(), () -> {
+                    try {
+                        Connection conn = DatabaseManager.getConnection();
+
+                        PreparedStatement ps = conn.prepareStatement(
+                                "INSERT OR REPLACE INTO eslestirmeler (uuid, discord_id, iki_fa, ip, odul) VALUES (?, ?, ?, ?, ?)"
+                        );
+                        ps.setString(1, uuid.toString());
+                        ps.setString(2, discordId);
+                        ps.setInt(3, 0);
+                        ps.setString(4, ip);
+                        ps.setInt(5, 0);
+                        ps.executeUpdate();
+                        ps.close();
+
+                        if (!odulVerildiMi(uuid)) {
+                            Bukkit.getScheduler().runTask(
+                                    AgnesEsle.getInstance(),
+                                    () -> AgnesEsle.getInstance().odulVer(uuid)
                             );
-                            ps.setString(1, finalUuid.toString());
-                            ps.setString(2, discordId);
-                            ps.setInt(3, 0);
-                            ps.setString(4, ip);
-                            ps.setInt(5, 0); // Ödül durumu
-                            ps.executeUpdate();
-                            ps.close();
-                        } catch (SQLException e) {
-                            logger.warning(e.getMessage());
+                            odulVerildi(uuid);
                         }
+
+                        DiscordBot bot = AgnesEsle.getInstance().getDiscordBot();
+                        if (bot != null) {
+                            bot.sendEslestirmeEmbed(uuid, discordId);
+                        }
+
+                    } catch (SQLException e) {
+                        logger.warning(e.getMessage());
                     }
                 }
         );
@@ -249,6 +260,30 @@ public class EslestirmeManager {
 
     public static boolean isIkiFAOpen(UUID uuid) {
         return ikiFADurumu.getOrDefault(uuid, false);
+    }
+
+    public static long getBoosterSonAlim(UUID uuid) {
+        return boosterZamanlari.getOrDefault(uuid, 0L);
+    }
+
+    public static void setBoosterSonAlim(UUID uuid, long time) {
+        boosterZamanlari.put(uuid, time);
+        AgnesEsle.getInstance().getServer().getScheduler().runTaskAsynchronously(
+                AgnesEsle.getInstance(), () -> {
+                    try {
+                        Connection conn = DatabaseManager.getConnection();
+                        PreparedStatement ps = conn.prepareStatement(
+                                "UPDATE eslestirmeler SET is_booster=? WHERE uuid=?"
+                        );
+                        ps.setLong(1, time);
+                        ps.setString(2, uuid.toString());
+                        ps.executeUpdate();
+                        ps.close();
+                    } catch (SQLException e) {
+                        logger.warning("Booster zamanı güncellenirken hata: " + e.getMessage());
+                    }
+                }
+        );
     }
 
     public static void setIkiFA(UUID uuid, boolean durum) {

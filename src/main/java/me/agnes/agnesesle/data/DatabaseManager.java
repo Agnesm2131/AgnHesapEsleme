@@ -24,7 +24,8 @@ public class DatabaseManager {
                                 "discord_id TEXT UNIQUE, " +
                                 "iki_fa INTEGER DEFAULT 0, " +
                                 "ip TEXT, " +
-                                "odul INTEGER DEFAULT 0" +
+                                "odul INTEGER DEFAULT 0, " +
+                                "is_booster INTEGER DEFAULT 0" +
                                 ");"
                 );
             }

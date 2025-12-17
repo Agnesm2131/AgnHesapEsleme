@@ -42,10 +42,8 @@ public class AgnesEsle extends JavaPlugin {
     private BenthPAPIManager papiMgr;
     private LuckPermsUtil luckPermsUtil;
 
-    // ------------- Günlük Ödül Sistemi Data -----------------
     private File rewardsDataFile;
     private FileConfiguration rewardsDataConfig;
-    // ---------------------------------------------
 
     @Override
     public void onEnable() {
@@ -83,10 +81,13 @@ public class AgnesEsle extends JavaPlugin {
         }
 
         this.discordBot = new DiscordBot(token);
-        this.discordBot.start();
 
         MessageUtil.load();
         MessageUtil.setLang(mainConfig.lang);
+
+        this.discordBot.start();
+
+
 
         PaperCommandManager commandManager = new PaperCommandManager(this);
 
@@ -252,7 +253,6 @@ public class AgnesEsle extends JavaPlugin {
     }
 
 
-     // ödül Verme İşlevi
     public void odulVer(UUID uuid) {
         Player player = Bukkit.getPlayer(uuid);
         if (player != null && player.isOnline()) {

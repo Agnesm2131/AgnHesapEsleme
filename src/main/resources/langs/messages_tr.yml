@@ -251,3 +251,36 @@ discord-kaldir-butonu:
 discord-odul-butonu:
   hesap-bulunamadi: "⚠️ Minecraft hesabınız bulunamadı, ya da hesabınız eşlenmemiş!"
   kontrol-ediliyor: "🎁 Ödül durumu kontrol ediliyor..."
+
+
+information-messages:
+
+  booster-message:
+    title: "💜 Sunucu Takviye (Booster) Paneli"
+    description: "Sunucumuza boost basarak bizlere destek olduğunuz için teşekkürler!"
+    rewards-title: "🎁 Mevcut Booster Ödülleri"
+    rewards-empty: "Ödül bulunamadı."
+    footer: "%server% | Takviye Sistemi"
+    button-claim: "🎁 Ödülleri Teslim Al"
+    button-status: "📊 Kalan Süremi Gör"
+
+  eslestirme-message:
+    title: "🔗 Hesabınızı Eşleştirip Ödüller Kazanın!"
+    description: |
+      Minecraft hesabınızı Discord hesabınız ile **güvenli bir şekilde**
+      eşleyerek ödüller kazanabilir ve ek güvenlik avantajlarından yararlanabilirsiniz.
+    how-title: "📌 Nasıl Eşlerim?"
+    how-text: |
+      • Oyunda `/hesapesle eşle`
+      • Kodu Discord’da **Eşleştir** butonuyla gir
+      • Oyunda `/hesapesle onayla <kod>`
+    advantages-title: "🎁 Avantajlar"
+    advantages-text: |
+      • Discord adı senkronizasyonu
+      • Ek güvenlik
+      • Özel ödüller
+    footer: "www.sunucuadi.com"
+    button-status: "🔗 Hesap Durumu"
+    button-link: "✔ Eşleştir"
+    button-unlink: "❌ Eşleşmeyi Kaldır"
+    button-reward: "🎁 Ödülleri Kontrol Et"

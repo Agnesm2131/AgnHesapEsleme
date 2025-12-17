@@ -224,3 +224,34 @@ discord-kaldir-butonu:
 discord-odul-butonu:
   hesap-bulunamadi: "⚠️ Minecraft-Account nicht gefunden, oder dein Account ist nicht verknüpft!"
   kontrol-ediliyor: "🎁 Belohnungsstatus wird geprüft..."
+
+
+booster-message:
+  title: "💜 Server-Boost (Booster) Panel"
+  description: "Vielen Dank für deine Unterstützung unseres Servers durch einen Boost!"
+  rewards-title: "🎁 Verfügbare Booster-Belohnungen"
+  rewards-empty: "Keine Belohnungen gefunden."
+  footer: "%server% | Boost-System"
+  button-claim: "🎁 Belohnungen abholen"
+  button-status: "📊 Verbleibende Zeit anzeigen"
+
+eslestirme-message:
+  title: "🔗 Verknüpfe dein Konto und erhalte Belohnungen!"
+  description: |
+    Durch die sichere Verknüpfung deines Minecraft-Kontos mit deinem Discord-Konto
+    kannst du Belohnungen erhalten und zusätzliche Sicherheitsvorteile nutzen.
+  how-title: "📌 Wie verknüpfe ich?"
+  how-text: |
+    • Betritt den Server und nutze `/hesapesle eşle`
+    • Gib den Code über den **Verknüpfen**-Button ein
+    • Bestätige im Spiel mit `/hesapesle onayla <Code>`
+  advantages-title: "🎁 Vorteile"
+  advantages-text: |
+    • Dein Discord-Name wird mit Minecraft synchronisiert
+    • Zusätzliche Sicherheit durch Discord-Schutz
+    • Erhalte **exklusive Belohnungen**
+
+  button-status: "🔗 Kontostatus"
+  button-link: "✔ Verknüpfen"
+  button-unlink: "❌ Verknüpfung aufheben"
+  button-reward: "🎁 Belohnungen prüfen"
