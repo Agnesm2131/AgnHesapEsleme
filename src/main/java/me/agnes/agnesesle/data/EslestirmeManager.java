@@ -23,33 +23,14 @@ public class EslestirmeManager {
 
     public static void init() {
         loadEslesmeler();
-<<<<<<< HEAD
-        loadIkiFA();
-        loadIPler();
-        loadOdulVerilenler();
 
-        AgnesEsle.getInstance().getServer().getScheduler().runTaskTimerAsynchronously(AgnesEsle.getInstance(), () -> {
-            long now = System.currentTimeMillis();
-            long expirationTime = 10 * 60 * 1000;
-
-            kodZamanlari.entrySet().removeIf(entry -> {
-                boolean expired = (now - entry.getValue()) > expirationTime;
-                if (expired) {
-                    String kod = entry.getKey();
-                    kodlar.remove(kod);
-                    bekleyenKodlar.remove(kod);
-                }
-                return expired;
-            });
-        }, 1200L, 1200L);
-=======
-
+        // Kodların zaman aşımlarını temizleyen task
         AgnesEsle.getInstance().getServer().getScheduler().runTaskTimerAsynchronously(
                 AgnesEsle.getInstance(), new Runnable() {
                     @Override
                     public void run() {
                         long now = System.currentTimeMillis();
-                        long expirationTime = 10 * 60 * 1000;
+                        long expirationTime = 10 * 60 * 1000; // 10 dakika
 
                         Iterator<Map.Entry<String, Long>> it = kodZamanlari.entrySet().iterator();
                         while (it.hasNext()) {
@@ -64,7 +45,6 @@ public class EslestirmeManager {
                     }
                 }, 1200L, 1200L
         );
->>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
     }
 
     public static long getEslesmeTarihi(UUID uuid) {
@@ -73,18 +53,6 @@ public class EslestirmeManager {
         return -1L;
     }
 
-<<<<<<< HEAD
-
-    // Kod Üretme İşlevi (Çakışma Kontrolü ile)
-    public static String uretKod(UUID uuid) {
-        String kod;
-        int denemeSayisi = 0;
-
-        do {
-            kod = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-            denemeSayisi++;
-        } while ((kodlar.containsKey(kod) || bekleyenKodlar.containsKey(kod)) && denemeSayisi < 5);
-=======
     public static String uretKod(UUID uuid) {
         String kod = null;
         int attempts = 0;
@@ -92,7 +60,6 @@ public class EslestirmeManager {
             kod = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
             attempts++;
         } while ((kodlar.containsKey(kod) || bekleyenKodlar.containsKey(kod)) && attempts < 5);
->>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
 
         kodlar.put(kod, uuid);
         bekleyenKodlar.put(kod, uuid);
@@ -100,22 +67,11 @@ public class EslestirmeManager {
         return kod;
     }
 
-<<<<<<< HEAD
-    // Kod Kontrol
-=======
->>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
     public static UUID koduKontrolEt(String kod) {
         if (kod == null) return null;
         return kodlar.get(kod.toUpperCase());
     }
 
-<<<<<<< HEAD
-    // Eşleştirme
-    public static boolean eslestir(UUID uuid, String discordId) {
-        if (discordId == null || uuid == null) return false;
-        if (eslesmeler.containsValue(discordId) || bekleyenEslesmeler.containsValue(discordId)) {
-            return false;
-=======
     public static String getDiscordId(UUID uuid) {
         try {
             Connection conn = DatabaseManager.getConnection();
@@ -134,7 +90,6 @@ public class EslestirmeManager {
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
->>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
         }
     }
 
@@ -145,12 +100,11 @@ public class EslestirmeManager {
         return true;
     }
 
-<<<<<<< HEAD
-     // Onay Kısmı
-=======
     public static boolean odulVerildiMi(UUID uuid) {
+        // Öncelikle memory'de kontrol et
         if (odulVerildiMap.containsKey(uuid)) return odulVerildiMap.get(uuid);
 
+        // DB'den kontrol
         try {
             Connection conn = DatabaseManager.getConnection();
             PreparedStatement ps = conn.prepareStatement("SELECT odul FROM eslestirmeler WHERE uuid=?");
@@ -163,7 +117,7 @@ public class EslestirmeManager {
             rs.close();
             ps.close();
 
-            odulVerildiMap.put(uuid, verildi);
+            odulVerildiMap.put(uuid, verildi); // memory'e kaydet
             return verildi;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -182,7 +136,7 @@ public class EslestirmeManager {
                         PreparedStatement ps = conn.prepareStatement(
                                 "UPDATE eslestirmeler SET odul=? WHERE uuid=?"
                         );
-                        ps.setInt(1, 1);
+                        ps.setInt(1, 1); // 1 = ödül verildi
                         ps.setString(2, uuid.toString());
                         ps.executeUpdate();
                         ps.close();
@@ -193,7 +147,6 @@ public class EslestirmeManager {
         );
     }
 
->>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
     public static boolean onaylaEslesme(UUID uuid, String ip) {
         final String discordId = bekleyenEslesmeler.remove(uuid);
         if (discordId == null) return false;
@@ -203,39 +156,6 @@ public class EslestirmeManager {
         kayitliIPler.put(uuid, ip);
         ikiFADurumu.put(uuid, false);
 
-<<<<<<< HEAD
-        if (!odulVerilenler.contains(uuid)) {
-            odulVerilenler.add(uuid);
-            AgnesEsle.getInstance().odulVer(uuid);
-            saveOdulVerilenler();
-        }
-
-        String roleId = AgnesEsle.getInstance().getMainConfig().verifiedRoleId;
-        if (roleId != null && !roleId.isEmpty()) {
-            AgnesEsle.getInstance().getDiscordBot().addRoleToMember(discordId, roleId);
-        } else {
-            AgnesEsle.getInstance().getLogger().warning("Verified role ID config'de ayarlanmamış.");
-        }
-
-        kodlar.values().removeIf(u -> u.equals(uuid));
-        bekleyenKodlar.values().removeIf(u -> u.equals(uuid));
-        kodZamanlari.entrySet().removeIf(entry -> {
-            String k = entry.getKey();
-            UUID val = bekleyenKodlar.get(k);
-            return val != null && val.equals(uuid);
-        });
-
-        if (ip != null) {
-            kayitliIPler.put(uuid, ip);
-        }
-
-        saveEslesmeler();
-        saveIPler();
-
-        if (AgnesEsle.getInstance().getMainConfig().logSystem) {
-            AgnesEsle.getInstance().getDiscordBot().sendEslestirmeEmbed(uuid, discordId);
-        }
-=======
         final UUID finalUuid = uuid;
         AgnesEsle.getInstance().getServer().getScheduler().runTaskAsynchronously(
                 AgnesEsle.getInstance(), new Runnable() {
@@ -250,7 +170,7 @@ public class EslestirmeManager {
                             ps.setString(2, discordId);
                             ps.setInt(3, 0);
                             ps.setString(4, ip);
-                            ps.setInt(5, 0);
+                            ps.setInt(5, 0); // Ödül durumu
                             ps.executeUpdate();
                             ps.close();
                         } catch (SQLException e) {
@@ -259,7 +179,6 @@ public class EslestirmeManager {
                     }
                 }
         );
->>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
 
         return true;
     }
@@ -273,13 +192,6 @@ public class EslestirmeManager {
         ikiFADurumu.remove(uuid);
         kayitliIPler.remove(uuid);
 
-<<<<<<< HEAD
-        saveEslesmeler();
-        saveIkiFA();
-        saveIPler();
-
-        saveOdulVerilenler();
-=======
         final UUID finalUuid = uuid;
         AgnesEsle.getInstance().getServer().getScheduler().runTaskAsynchronously(
                 AgnesEsle.getInstance(), new Runnable() {
@@ -297,7 +209,6 @@ public class EslestirmeManager {
                     }
                 }
         );
->>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
     }
 
     public static Map<UUID, String> getTumEslesmeler() {
@@ -420,72 +331,4 @@ public class EslestirmeManager {
             logger.warning(e.getMessage());
         }
     }
-<<<<<<< HEAD
-
-    private static void saveIkiFA() {
-        Map<String, Boolean> data = new HashMap<>();
-        ikiFADurumu.forEach((k,v) -> data.put(k.toString(), v));
-        saveData(ikiFAFile, data);
-    }
-
-    private static void loadIPler() {
-        if (!ipFile.exists()) return;
-        try (Reader reader = new FileReader(ipFile)) {
-            Type type = new TypeToken<Map<String, String>>(){}.getType();
-            Map<String, String> data = gson.fromJson(reader, type);
-            if (data != null) {
-                kayitliIPler.clear();
-                data.forEach((k,v) -> kayitliIPler.put(UUID.fromString(k), v));
-            }
-        } catch (IOException e) {
-            logger.warning(e.getMessage());
-        }
-    }
-
-    private static void saveIPler() {
-        Map<String, String> data = new HashMap<>();
-        kayitliIPler.forEach((k,v) -> data.put(k.toString(), v));
-        try (Writer writer = new FileWriter(ipFile)) {
-            gson.toJson(data, writer);
-        } catch (IOException e) {
-            logger.warning(e.getMessage());
-        }
-    }
-
-     private static <T> void saveData(File file, T data) {
-         AgnesEsle.getInstance().getServer().getScheduler().runTaskAsynchronously(AgnesEsle.getInstance(), () -> {
-             File tmpFile = new File(file.getParentFile(), file.getName() + ".tmp");
-
-             synchronized (file) {
-                 try (Writer writer = new FileWriter(tmpFile)) {
-                     gson.toJson(data, writer);
-                 } catch (IOException e) {
-                     logger.warning("Geçici veri kaydedilemedi: " + e.getMessage());
-                     return;
-                 }
-
-                 if (file.exists()) {
-                     boolean ignored = file.delete();
-                 }
-                 boolean basarili = tmpFile.renameTo(file);
-                 if (!basarili) {
-                     logger.warning("Dosya adı değiştirilemedi: " + file.getName());
-                 }
-             }
-         });
-     }
-
-    private static <T> T loadData(Type type) {
-        if (!EslestirmeManager.dataFile.exists()) {
-            return null;
-        }
-        try (Reader reader = new FileReader(EslestirmeManager.dataFile)) {
-            return gson.fromJson(reader, type);
-        } catch (IOException e) {
-            logger.warning("Veri okunamadı: " + EslestirmeManager.dataFile.getName() + " -> " + e.getMessage());
-            return null;
-        }
-    }
-=======
->>>>>>> 9d515ea (SWITCHING TO NEW Database SQLITE)
 }

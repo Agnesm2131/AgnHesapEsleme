@@ -279,7 +279,7 @@ public class EsleCommandACF extends BaseCommand {
         }
 
         AgnesEsle.getInstance().odulVer(targetUUID);
-        EslestirmeManager.odulVerildi(targetUUID);
+        EslestirmeManager.odulVerildi(targetUUID); // DB'ye yazar
 
         Map<String, String> vars = new HashMap<>();
         vars.put("player", target.getName());
