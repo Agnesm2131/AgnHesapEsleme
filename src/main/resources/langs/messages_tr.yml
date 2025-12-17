@@ -51,6 +51,33 @@ yetki-yok:
   title: "§cYetki Yok"
   subtitle: "§7Bu komutu kullanmak için yetkin yok."
 
+
+information-message:
+  title: "🎮 Discord Hesabınızı Minecraft Hesabınızla Eşleyin!"
+  description: |
+    **Nasıl Eşlerim?**
+    1️⃣ Sunucuya girip `/hesapeşle eşle` komutuyla size özel bir kod alın.
+    2️⃣ Bu kanala gelip `/eşle (kod)` komutunu yazın.
+    3️⃣ Oyun içinden `/hesapeşle onayla` komutuyla eşleşmeyi onaylayın.
+
+    **Avantajları Neler?**
+    - Discord kullanıcı adınız Minecraft adınızla değiştirilir.
+    - Discord koruması sayesinde hesabınız güvende olur.
+    - Hesap eşlemesi sonrası oyun içinden ödüller kazanırsınız.
+
+    **Discord-2FA Nedir?**
+    IP değişiminde Discord botu DM üzerinden onay ister, böylece hesabınız korunur.
+    Discord korumasını açmanızı öneriyoruz.
+
+    **Önemli!**
+    - DM’leriniz açık olmalıdır.
+    - Komutlar:
+      `/hesapesle 2fa aç` — Koruma açar
+      `/hesapesle 2fa kapat` — Koruma kapatır
+
+    Hesap Eşleştirme / Güvene Alma Sistemi
+
+
 hatalı-kullanim:
   title: "§cHatalı Kullanım"
   subtitle: "§7Lütfen komutu doğru biçimde kullanın."
@@ -187,3 +214,40 @@ discord-2fa-button-deny: "Hayır, Bu Ben Değildim (Reddet)"
 odul-not-linked: "&cBu oyuncunun hesabı eşleşmemiş."
 odul-already-given: "&eBu oyuncu ödülünü zaten almış."
 odul-given-success: "&a%player% adlı oyuncuya ödül başarıyla verildi."
+
+# Günlük Ödül Sistemi
+odul-sistemi:
+  eslesmemis: "⚠️ Minecraft hesabınız eşlenmemiş!"
+  oyuncu-cevrimdisi: "⚠️ Minecraft oyuncunuz şu anda çevrimiçi değil. Ödül verilemiyor."
+  bekleme-suresi: "⏳ Ödül almak için lütfen **%time%** bekleyin!"
+  basarili: "🎉 Günlük ödülünüz başarıyla teslim edildi!"
+  zaman-formati: "%hours% saat %minutes% dakika %seconds% saniye"
+
+# Discord Modal (Kod Girme Ekranı)
+discord-modal-cevap:
+  gecersiz-kod: "Geçersiz veya süresi geçmiş kod girdiniz!"
+  discord-zaten-esli: "Bu Discord hesabı zaten başka bir Minecraft hesabıyla eşleşmiş."
+  basarili-yonlendirme: "Kod doğrulandı, şimdi oyun içinden `/hesapeşle onayla` komutunu kullanarak eşleşmeyi onaylayabilirsiniz."
+  basarisiz: "Eşleştirme işlemi başarısız oldu, lütfen tekrar deneyin."
+
+# Discord Hesap Durumu Butonu
+discord-hesap-durumu:
+  eslesmemis: "Bu Discord hesabı herhangi bir Minecraft hesabıyla eşleşmemiş."
+  embed-baslik: "📄 Hesap Durumu"
+  field-oyuncu: "Oyuncu Adı"
+  field-2fa: "2FA Durumu"
+  field-tarih: "Eşleşme Tarihi"
+  field-tarih-deger: "Yaklaşık %days% gün önce"
+  footer: "Hesap durumu bilgisi"
+  acik: "✅ Açık"
+  kapali: "❌ Kapalı"
+
+# Discord Eşleşme Kaldır Butonu
+discord-kaldir-butonu:
+  eslesmemis: "Bu Discord hesabı herhangi bir Minecraft hesabıyla eşleşmemiş."
+  basarili: "Eşleşme başarıyla kaldırıldı. Artık bu hesap eşleşmiş değil."
+
+# Discord Ödül Kontrol Butonu
+discord-odul-butonu:
+  hesap-bulunamadi: "⚠️ Minecraft hesabınız bulunamadı, ya da hesabınız eşlenmemiş!"
+  kontrol-ediliyor: "🎁 Ödül durumu kontrol ediliyor..."

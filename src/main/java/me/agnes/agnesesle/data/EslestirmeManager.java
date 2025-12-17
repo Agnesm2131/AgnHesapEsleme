@@ -1,11 +1,8 @@
 package me.agnes.agnesesle.data;
 
 import me.agnes.agnesesle.AgnesEsle;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.io.*;
-import java.lang.reflect.Type;
+import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
@@ -17,121 +14,171 @@ public class EslestirmeManager {
     private static final Map<String, UUID> kodlar = new ConcurrentHashMap<>();
     private static final Map<UUID, String> eslesmeler = new ConcurrentHashMap<>();
     private static final Map<UUID, String> bekleyenEslesmeler = new ConcurrentHashMap<>();
-
     private static final Map<String, UUID> bekleyenKodlar = new ConcurrentHashMap<>();
     private static final Map<String, Long> kodZamanlari = new ConcurrentHashMap<>();
-
-    private static final Set<UUID> odulVerilenler = ConcurrentHashMap.newKeySet();
-
-    // 2FA Durumu (Eklenen kısım)
+    private static final Map<UUID, Long> eslesmeZamanlari = new ConcurrentHashMap<>();
     private static final Map<UUID, Boolean> ikiFADurumu = new ConcurrentHashMap<>();
-
-    // IP Adresleri (2FA için)
+    private static final Map<UUID, Boolean> odulVerildiMap = new ConcurrentHashMap<>();
     private static final Map<UUID, String> kayitliIPler = new ConcurrentHashMap<>();
-
-    private static final File dataFile = new File(AgnesEsle.getInstance().getDataFolder(), "data.json");
-    private static final File ikiFAFile = new File(AgnesEsle.getInstance().getDataFolder(), "ikiFA.json");
-    private static final File ipFile = new File(AgnesEsle.getInstance().getDataFolder(), "ipData.json");
-    private static final File odulFile = new File(AgnesEsle.getInstance().getDataFolder(), "odulVerilenler.json");  // buraya ekle
-
-    private static final Gson gson = new Gson();
 
     public static void init() {
         loadEslesmeler();
-        loadIkiFA();
-        loadIPler();
-        loadOdulVerilenler();
+
+        AgnesEsle.getInstance().getServer().getScheduler().runTaskTimerAsynchronously(
+                AgnesEsle.getInstance(), new Runnable() {
+                    @Override
+                    public void run() {
+                        long now = System.currentTimeMillis();
+                        long expirationTime = 10 * 60 * 1000;
+
+                        Iterator<Map.Entry<String, Long>> it = kodZamanlari.entrySet().iterator();
+                        while (it.hasNext()) {
+                            Map.Entry<String, Long> entry = it.next();
+                            if ((now - entry.getValue()) > expirationTime) {
+                                String kod = entry.getKey();
+                                kodlar.remove(kod);
+                                bekleyenKodlar.remove(kod);
+                                it.remove();
+                            }
+                        }
+                    }
+                }, 1200L, 1200L
+        );
     }
 
-    public static void loadOdulVerilenler() {
-        if (!odulFile.exists()) return;
-        try (Reader reader = new FileReader(odulFile)) {
-            Type type = new TypeToken<Set<UUID>>(){}.getType();
-            Set<UUID> loaded = gson.fromJson(reader, type);
-            if (loaded != null) odulVerilenler.addAll(loaded);
-        } catch (IOException e) {
-            logger.warning(e.getMessage());
-        }
-    }
-    // Ödül Verilenleri Kaydedilme İşlevi
-    public static void saveOdulVerilenler() {
-        try (Writer writer = new FileWriter(odulFile)) {
-            gson.toJson(odulVerilenler, writer);
-        } catch (IOException e) {
-            logger.warning(e.getMessage());
-        }
+    public static long getEslesmeTarihi(UUID uuid) {
+        Long time = eslesmeZamanlari.get(uuid);
+        if (time != null) return time;
+        return -1L;
     }
 
-
-    // Kod Üretme İşlevi
     public static String uretKod(UUID uuid) {
-        String kod = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        String kod = null;
+        int attempts = 0;
+        do {
+            kod = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+            attempts++;
+        } while ((kodlar.containsKey(kod) || bekleyenKodlar.containsKey(kod)) && attempts < 5);
+
         kodlar.put(kod, uuid);
         bekleyenKodlar.put(kod, uuid);
         kodZamanlari.put(kod, System.currentTimeMillis());
         return kod;
     }
-    // Kod Kontrol
+
     public static UUID koduKontrolEt(String kod) {
         if (kod == null) return null;
         return kodlar.get(kod.toUpperCase());
     }
-    // Eşleştirme
-    public static boolean eslestir(UUID uuid, String discordId) {
-        if (discordId == null || uuid == null) return false;
-        if (eslesmeler.containsValue(discordId) || bekleyenEslesmeler.containsValue(discordId)) {
-            return false;
+
+    public static String getDiscordId(UUID uuid) {
+        try {
+            Connection conn = DatabaseManager.getConnection();
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT discord_id FROM eslestirmeler WHERE uuid=?"
+            );
+            ps.setString(1, uuid.toString());
+            ResultSet rs = ps.executeQuery();
+            String discordId = null;
+            if (rs.next()) {
+                discordId = rs.getString("discord_id");
+            }
+            rs.close();
+            ps.close();
+            return discordId;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
         }
+    }
+
+    public static boolean eslestir(UUID uuid, String discordId) {
+        if (uuid == null || discordId == null) return false;
+        if (eslesmeler.containsValue(discordId) || bekleyenEslesmeler.containsValue(discordId)) return false;
         bekleyenEslesmeler.put(uuid, discordId);
         return true;
     }
-     // Onay Kısmı
+
+    public static boolean odulVerildiMi(UUID uuid) {
+        if (odulVerildiMap.containsKey(uuid)) return odulVerildiMap.get(uuid);
+
+        try {
+            Connection conn = DatabaseManager.getConnection();
+            PreparedStatement ps = conn.prepareStatement("SELECT odul FROM eslestirmeler WHERE uuid=?");
+            ps.setString(1, uuid.toString());
+            ResultSet rs = ps.executeQuery();
+            boolean verildi = false;
+            if (rs.next()) {
+                verildi = rs.getInt("odul") == 1;
+            }
+            rs.close();
+            ps.close();
+
+            odulVerildiMap.put(uuid, verildi);
+            return verildi;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static void odulVerildi(UUID uuid) {
+        odulVerildiMap.put(uuid, true);
+
+        AgnesEsle.getInstance().getServer().getScheduler().runTaskAsynchronously(
+                AgnesEsle.getInstance(),
+                () -> {
+                    try {
+                        Connection conn = DatabaseManager.getConnection();
+                        PreparedStatement ps = conn.prepareStatement(
+                                "UPDATE eslestirmeler SET odul=? WHERE uuid=?"
+                        );
+                        ps.setInt(1, 1);
+                        ps.setString(2, uuid.toString());
+                        ps.executeUpdate();
+                        ps.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+        );
+    }
+
     public static boolean onaylaEslesme(UUID uuid, String ip) {
-        AgnesEsle.getInstance().getLogger().info("onaylaEslesme çağrıldı: " + uuid);
-        String discordId = bekleyenEslesmeler.remove(uuid);
+        final String discordId = bekleyenEslesmeler.remove(uuid);
         if (discordId == null) return false;
 
         eslesmeler.put(uuid, discordId);
+        eslesmeZamanlari.put(uuid, System.currentTimeMillis());
+        kayitliIPler.put(uuid, ip);
+        ikiFADurumu.put(uuid, false);
 
-        if (!odulVerilenler.contains(uuid)) {
-            odulVerilenler.add(uuid);
-            AgnesEsle.getInstance().odulVer(uuid);
-            saveOdulVerilenler();
-        }
-
-        String roleId = AgnesEsle.getInstance().getConfig().getString("verified-role-id");
-        if (roleId != null && !roleId.isEmpty()) {
-            AgnesEsle.getInstance().getDiscordBot().addRoleToMember(discordId, roleId);
-        } else {
-            AgnesEsle.getInstance().getLogger().warning("Verified role ID config'de ayarlanmamış.");
-        }
-
-        kodlar.values().removeIf(u -> u.equals(uuid));
-        bekleyenKodlar.values().removeIf(u -> u.equals(uuid));
-        kodZamanlari.entrySet().removeIf(entry -> {
-            String k = entry.getKey();
-            UUID val = bekleyenKodlar.get(k);
-            return val != null && val.equals(uuid);
-        });
-
-        if (ip != null) {
-            kayitliIPler.put(uuid, ip);
-        }
-
-        saveEslesmeler();
-        saveIPler();
-
-        if (AgnesEsle.getInstance().getConfig().getBoolean("log-system", false)) {
-            AgnesEsle.getInstance().getDiscordBot().sendEslestirmeEmbed(uuid, discordId);
-        }
-
+        final UUID finalUuid = uuid;
+        AgnesEsle.getInstance().getServer().getScheduler().runTaskAsynchronously(
+                AgnesEsle.getInstance(), new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Connection conn = DatabaseManager.getConnection();
+                            PreparedStatement ps = conn.prepareStatement(
+                                    "INSERT OR REPLACE INTO eslestirmeler (uuid, discord_id, iki_fa, ip, odul) VALUES (?, ?, ?, ?, ?)"
+                            );
+                            ps.setString(1, finalUuid.toString());
+                            ps.setString(2, discordId);
+                            ps.setInt(3, 0);
+                            ps.setString(4, ip);
+                            ps.setInt(5, 0);
+                            ps.executeUpdate();
+                            ps.close();
+                        } catch (SQLException e) {
+                            logger.warning(e.getMessage());
+                        }
+                    }
+                }
+        );
 
         return true;
     }
-
-
-
-
 
     public static boolean beklemeVar(UUID uuid) {
         return bekleyenEslesmeler.containsKey(uuid);
@@ -142,14 +189,24 @@ public class EslestirmeManager {
         ikiFADurumu.remove(uuid);
         kayitliIPler.remove(uuid);
 
-
-        saveEslesmeler();
-        saveIkiFA();
-        saveIPler();
-
-        saveOdulVerilenler();
+        final UUID finalUuid = uuid;
+        AgnesEsle.getInstance().getServer().getScheduler().runTaskAsynchronously(
+                AgnesEsle.getInstance(), new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Connection conn = DatabaseManager.getConnection();
+                            PreparedStatement ps = conn.prepareStatement("DELETE FROM eslestirmeler WHERE uuid=?");
+                            ps.setString(1, finalUuid.toString());
+                            ps.executeUpdate();
+                            ps.close();
+                        } catch (SQLException e) {
+                            logger.warning(e.getMessage());
+                        }
+                    }
+                }
+        );
     }
-
 
     public static Map<UUID, String> getTumEslesmeler() {
         return Collections.unmodifiableMap(eslesmeler);
@@ -165,44 +222,27 @@ public class EslestirmeManager {
 
     public static UUID getUUIDByDiscordId(String discordId) {
         for (Map.Entry<UUID, String> entry : eslesmeler.entrySet()) {
-            if (entry.getValue().equals(discordId)) {
-                return entry.getKey();
-            }
+            if (entry.getValue().equals(discordId)) return entry.getKey();
         }
         return null;
     }
 
     public static boolean iptalEt(UUID uuid) {
-        if (bekleyenKodlar.containsValue(uuid)) {
-            String kod = null;
-            for (Map.Entry<String, UUID> entry : bekleyenKodlar.entrySet()) {
-                if (entry.getValue().equals(uuid)) {
-                    kod = entry.getKey();
-                    break;
-                }
+        String kod = null;
+        for (Map.Entry<String, UUID> entry : bekleyenKodlar.entrySet()) {
+            if (entry.getValue().equals(uuid)) {
+                kod = entry.getKey();
+                break;
             }
-            if (kod != null) {
-                kodlar.remove(kod);
-                bekleyenKodlar.remove(kod);
-                kodZamanlari.remove(kod);
-                return true;
-            }
+        }
+        if (kod != null) {
+            kodlar.remove(kod);
+            bekleyenKodlar.remove(kod);
+            kodZamanlari.remove(kod);
+            return true;
         }
         return false;
     }
-
-    public static boolean odulVerildiMi(UUID uuid) {
-        return odulVerilenler.contains(uuid);
-    }
-
-    public static void odulVerildi(UUID uuid) {
-        odulVerilenler.add(uuid);
-    }
-
-    public static String getDiscordId(UUID uuid) {
-        return eslesmeler.get(uuid);
-    }
-
 
     public static boolean isIkiFAOpen(UUID uuid) {
         return ikiFADurumu.getOrDefault(uuid, false);
@@ -210,19 +250,58 @@ public class EslestirmeManager {
 
     public static void setIkiFA(UUID uuid, boolean durum) {
         ikiFADurumu.put(uuid, durum);
-        saveIkiFA();
-    }
 
+        final UUID finalUuid = uuid;
+        final int val = durum ? 1 : 0;
+        AgnesEsle.getInstance().getServer().getScheduler().runTaskAsynchronously(
+                AgnesEsle.getInstance(), new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Connection conn = DatabaseManager.getConnection();
+                            PreparedStatement ps = conn.prepareStatement(
+                                    "UPDATE eslestirmeler SET iki_fa=? WHERE uuid=?"
+                            );
+                            ps.setInt(1, val);
+                            ps.setString(2, finalUuid.toString());
+                            ps.executeUpdate();
+                            ps.close();
+                        } catch (SQLException e) {
+                            logger.warning(e.getMessage());
+                        }
+                    }
+                }
+        );
+    }
 
     public static String getKayitliIP(UUID uuid) {
         return kayitliIPler.get(uuid);
     }
 
     public static void setKayitliIP(UUID uuid, String ip) {
-        if (ip != null) {
-            kayitliIPler.put(uuid, ip);
-            saveIPler();
-        }
+        kayitliIPler.put(uuid, ip);
+
+        final UUID finalUuid = uuid;
+        final String finalIp = ip;
+        AgnesEsle.getInstance().getServer().getScheduler().runTaskAsynchronously(
+                AgnesEsle.getInstance(), new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Connection conn = DatabaseManager.getConnection();
+                            PreparedStatement ps = conn.prepareStatement(
+                                    "UPDATE eslestirmeler SET ip=? WHERE uuid=?"
+                            );
+                            ps.setString(1, finalIp);
+                            ps.setString(2, finalUuid.toString());
+                            ps.executeUpdate();
+                            ps.close();
+                        } catch (SQLException e) {
+                            logger.warning(e.getMessage());
+                        }
+                    }
+                }
+        );
     }
 
     public static boolean ipDegisti(UUID uuid, String yeniIP) {
@@ -231,79 +310,22 @@ public class EslestirmeManager {
         return !eskiIP.equals(yeniIP);
     }
 
-
-    public static void loadEslesmeler() {
-        Map<UUID, String> veriler = loadData(new TypeToken<Map<UUID, String>>() {}.getType());
-        if (veriler != null) {
-            eslesmeler.putAll(veriler);
-        }
-    }
-
-    private static void saveEslesmeler() {
-        saveData(dataFile, eslesmeler);
-    }
-
-    private static void loadIkiFA() {
-        if (!ikiFAFile.exists()) return;
-        try (Reader reader = new FileReader(ikiFAFile)) {
-            Type type = new TypeToken<Map<String, Boolean>>(){}.getType();
-            Map<String, Boolean> data = gson.fromJson(reader, type);
-            if (data != null) {
-                ikiFADurumu.clear();
-                data.forEach((k,v) -> ikiFADurumu.put(UUID.fromString(k), v));
+    private static void loadEslesmeler() {
+        try {
+            Connection conn = DatabaseManager.getConnection();
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM eslestirmeler");
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                UUID uuid = UUID.fromString(rs.getString("uuid"));
+                eslesmeler.put(uuid, rs.getString("discord_id"));
+                ikiFADurumu.put(uuid, rs.getInt("iki_fa") == 1);
+                kayitliIPler.put(uuid, rs.getString("ip"));
+                eslesmeZamanlari.put(uuid, System.currentTimeMillis());
             }
-        } catch (IOException e) {
+            rs.close();
+            ps.close();
+        } catch (SQLException e) {
             logger.warning(e.getMessage());
-        }
-    }
-
-    private static void saveIkiFA() {
-        Map<String, Boolean> data = new HashMap<>();
-        ikiFADurumu.forEach((k,v) -> data.put(k.toString(), v));
-        saveData(ikiFAFile, data);
-    }
-
-    private static void loadIPler() {
-        if (!ipFile.exists()) return;
-        try (Reader reader = new FileReader(ipFile)) {
-            Type type = new TypeToken<Map<String, String>>(){}.getType();
-            Map<String, String> data = gson.fromJson(reader, type);
-            if (data != null) {
-                kayitliIPler.clear();
-                data.forEach((k,v) -> kayitliIPler.put(UUID.fromString(k), v));
-            }
-        } catch (IOException e) {
-            logger.warning(e.getMessage());
-        }
-    }
-
-    private static void saveIPler() {
-        Map<String, String> data = new HashMap<>();
-        kayitliIPler.forEach((k,v) -> data.put(k.toString(), v));
-        try (Writer writer = new FileWriter(ipFile)) {
-            gson.toJson(data, writer);
-        } catch (IOException e) {
-            logger.warning(e.getMessage());
-        }
-    }
-     // Data'ya Kaydetme işlevi
-    private static <T> void saveData(File file, T data) {
-        try (Writer writer = new FileWriter(file)) {
-            gson.toJson(data, writer);
-        } catch (IOException e) {
-            logger.warning("Veri kaydedilemedi: " + file.getName() + " -> " + e.getMessage());
-        }
-    }
-
-    private static <T> T loadData(Type type) {
-        if (!EslestirmeManager.dataFile.exists()) {
-            return null;
-        }
-        try (Reader reader = new FileReader(EslestirmeManager.dataFile)) {
-            return gson.fromJson(reader, type);
-        } catch (IOException e) {
-            logger.warning("Veri okunamadı: " + EslestirmeManager.dataFile.getName() + " -> " + e.getMessage());
-            return null;
         }
     }
 }

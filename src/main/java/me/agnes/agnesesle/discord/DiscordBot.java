@@ -9,8 +9,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.interactions.Interaction;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -21,60 +19,53 @@ import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import java.io.File;
 import java.util.*;
-import org.bukkit.configuration.file.FileConfiguration;
 import net.dv8tion.jda.api.entities.User;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import me.agnes.agnesesle.AgnesEsle;
 import me.agnes.agnesesle.data.EslestirmeManager;
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import java.awt.Color;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
- // Kod Giriş Modal'ı
 public class DiscordBot extends ListenerAdapter {
 
     @Override
     public void onModalInteraction(ModalInteractionEvent event) {
         if (event.getModalId().equals("kod_gir_modal")) {
-            String kod = event.getValue("kod").getAsString();
+            String kod = Objects.requireNonNull(event.getValue("kod")).getAsString();
             UUID uuid = EslestirmeManager.koduKontrolEt(kod);
 
             if (uuid == null) {
-                event.reply("Geçersiz veya süresi geçmiş kod girdiniz!").setEphemeral(true).queue();
+                event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-modal-cevap.gecersiz-kod"))).setEphemeral(true).queue();
                 return;
             }
 
             if (EslestirmeManager.discordZatenEslesmis(event.getUser().getId())) {
-                event.reply("Bu Discord hesabı zaten başka bir Minecraft hesabıyla eşleşmiş.").setEphemeral(true).queue();
+                event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-modal-cevap.discord-zaten-esli"))).setEphemeral(true).queue();
                 return;
             }
 
             boolean basarili = EslestirmeManager.eslestir(uuid, event.getUser().getId());
 
             if (basarili) {
-                event.reply("Kod doğrulandı, şimdi oyun içinden `/hesapeşle onayla` komutunu kullanarak eşleşmeyi onaylayabilirsiniz.")
-                        .setEphemeral(true).queue();
+                event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-modal-cevap.basarili-yonlendirme"))).setEphemeral(true).queue();
             } else {
-                event.reply("Eşleştirme işlemi başarısız oldu, lütfen tekrar deneyin.").setEphemeral(true).queue();
+                event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-modal-cevap.basarisiz"))).setEphemeral(true).queue();
             }
         }
     }
 
-    private static final long ESLE_COOLDOWN_SECONDS = 60; // 1 dakika
-    private static final long REPORT_COOLDOWN_SECONDS = 300; // 5 dakika
+    private static final long ESLE_COOLDOWN_SECONDS = 60;
+    private static final long REPORT_COOLDOWN_SECONDS = 300;
 
     private final Logger logger;
     private final String token;
     private JDA jda;
-    private ScheduledExecutorService scheduler;
 
-    // Cache'ler
     private final Cache<String, Long> esleCooldowns;
     private final Cache<String, Long> reportCooldowns;
 
@@ -83,24 +74,18 @@ public class DiscordBot extends ListenerAdapter {
         return mesaj.replace("{aktifkullanici}", String.valueOf(aktifKullanici));
     }
 
-
-
     public DiscordBot(String token) {
         this.logger = AgnesEsle.getInstance().getLogger();
         this.token = token;
-
         this.esleCooldowns = Caffeine.newBuilder()
                 .expireAfterWrite(60, TimeUnit.SECONDS)
                 .build();
-
         this.reportCooldowns = Caffeine.newBuilder()
                 .expireAfterWrite(5, TimeUnit.MINUTES)
                 .build();
 
     }
 
-
-    // Discord Bot'u Komutları
     public void start() {
         try {
             jda = JDABuilder.createDefault(token)
@@ -112,67 +97,45 @@ public class DiscordBot extends ListenerAdapter {
             jda.upsertCommand("eşle", "Bir hesap eşleştirme kodu girin")
                     .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.STRING, "kod", "Eşleştirme kodu", true)
                     .queue();
-
             jda.upsertCommand("raporla", "Bir oyuncuyu raporlayın")
                     .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.STRING, "oyuncu", "Raporlanacak oyuncu adı", true)
                     .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.STRING, "sebep", "Rapor sebebi", true)
                     .queue();
-
             jda.upsertCommand("bilgi", "Bir kullanıcı hakkında bilgi al")
                     .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.USER, "kullanıcı", "Bilgi alınacak kullanıcı", true)
                     .queue();
 
-            List<String> durumlar = AgnesEsle.getInstance().getConfig().getStringList("status-messages");
-            scheduler = Executors.newSingleThreadScheduledExecutor();
-            scheduler.scheduleAtFixedRate(() -> {
-                if (durumlar.isEmpty()) return;
+            final List<String> durumlar = AgnesEsle.getInstance().getMainConfig().statusMessages;
+            new org.bukkit.scheduler.BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (jda == null || jda.getStatus() != JDA.Status.CONNECTED) return;
+                    if (durumlar == null || durumlar.isEmpty()) return;
 
-                int index = (int) ((System.currentTimeMillis() / 5000) % durumlar.size());
-                String mesaj = durumlar.get(index);
-                String islenmisMesaj = parsePlaceholders(mesaj);
+                    int index = (int) ((System.currentTimeMillis() / 5000) % durumlar.size());
+                    String mesaj = durumlar.get(index);
+                    String finalMesaj = parsePlaceholders(mesaj);
+                    net.dv8tion.jda.api.entities.Activity activity = net.dv8tion.jda.api.entities.Activity.playing(finalMesaj);
+                    jda.getPresence().setActivity(activity);
+                }
+            }.runTaskTimer(AgnesEsle.getInstance(), 0L, 100L);
 
-                jda.getPresence().setActivity(net.dv8tion.jda.api.entities.Activity.playing(islenmisMesaj));
-            }, 0, 5, TimeUnit.SECONDS);
-
-            // Bilgilendirme Mesajı Kısmı
-            if (!AgnesEsle.getInstance().getConfig().getBoolean("information-sent", false)) {
-                String kanalId = AgnesEsle.getInstance().getConfig().getString("information-channel-id");
+            String infoMessageStatus = AgnesEsle.getInstance().getMainConfig().informationMessage;
+            if ("gönderilmedi".equalsIgnoreCase(infoMessageStatus)) {
+                String kanalId = AgnesEsle.getInstance().getMainConfig().informationChannelId;
                 if (kanalId == null || kanalId.isEmpty()) {
                     System.out.println("AgnHesapEşle: Bilgilendirme kanalı ID'si ayarlanmamış.");
                     return;
                 }
+
                 TextChannel kanal = jda.getTextChannelById(kanalId);
                 if (kanal != null) {
                     Guild guild = kanal.getGuild();
-                    String sunucuIkonURL = guild.getIconUrl();
-
-                    EmbedBuilder embed = new EmbedBuilder()
-                            .setTitle("🎮 Discord Hesabınızı Minecraft Hesabınızla Eşleyin!")
-                            .setColor(new Color(0x2F3136))
-                            .setDescription(
-                                    "**Nasıl Eşlerim?**\n" +
-                                            "1️⃣ Sunucuya girip `/hesapeşle eşle` komutuyla size özel bir kod alın.\n" +
-                                            "2️⃣ Bu kanala gelip `/eşle (kod)` komutunu yazın.\n" +
-                                            "3️⃣ Oyun içinden `/hesapeşle onayla` komutuyla eşleşmeyi onaylayın.\n\n" +
-
-                                            "**Avantajları Neler?**\n" +
-                                            "- Discord kullanıcı adınız Minecraft adınızla değiştirilir.\n" +
-                                            "- Discord koruması sayesinde hesabınız güvende olur.\n" +
-                                            "- Hesap eşlemesi sonrası oyun içinden ödüller kazanırsınız.\n\n" +
-
-                                            "**Discord-2FA Nedir?**\n" +
-                                            "IP değişiminde Discord botu DM üzerinden onay ister, böylece hesabınız korunur.\n" +
-                                            "Discord korumasını açmanızı öneriyoruz.\n\n" +
-
-                                            "**Önemli!**\n" +
-                                            "- DM’leriniz açık olmalıdır.\n" +
-                                            "- Komutlar:\n" +
-                                            "  `/hesapesle 2fa aç` — Koruma açar\n" +
-                                            "  `/hesapesle 2fa kapat` — Koruma kapatır\n\n" +
-
-                                            "  Hesap Eşleştirme / Güvene Alma Sistemi"
-                            )
-                            .setThumbnail(sunucuIkonURL);
+                    EmbedBuilder embed = new EmbedBuilder();
+                    embed.setTitle(MessageUtil.getMessage("information-message.title"));
+                    embed.setDescription(MessageUtil.getMessage("information-message.description"));
+                    embed.setColor(new Color(0x2F3136));
+                    embed.setThumbnail(guild.getIconUrl());
 
                     kanal.sendMessageEmbeds(embed.build())
                             .setActionRow(
@@ -183,30 +146,19 @@ public class DiscordBot extends ListenerAdapter {
                             )
                             .queue();
 
-                    AgnesEsle.getInstance().getConfig().set("information-sent", true);
-                    AgnesEsle.getInstance().saveConfig();
+                    AgnesEsle.getInstance().getMainConfig().informationMessage = "gönderildi";
+                    AgnesEsle.getInstance().getConfigManager().save(AgnesEsle.getInstance().getMainConfig(), "config.yml");
                 }
             }
 
-
-
-
-
-
-
-
-
-
-
         } catch (Exception e) {
-            logger.warning(e.getMessage());
+            e.printStackTrace();
         }
     }
 
 
 
     @SuppressWarnings("deprecation")
-    // Bilgilendirme Mesajın da ki Buton İşlevleri
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
         String id = event.getComponentId();
@@ -215,7 +167,6 @@ public class DiscordBot extends ListenerAdapter {
             case "hesap_durumu":
                 handleHesapDurumu(event);
                 break;
-
             case "eslestir":
                 Modal modal = Modal.create("kod_gir_modal", "Eşleştirme Kodu Gir")
                         .addActionRow(
@@ -227,38 +178,28 @@ public class DiscordBot extends ListenerAdapter {
                         .build();
                 event.replyModal(modal).queue();
                 break;
-
             case "eslesmeyi_kaldir":
                 handleEslesmeyiKaldir(event);
                 break;
-
             case "odul-kontrol":
                 String discordId = event.getUser().getId();
                 UUID playerUUID = EslestirmeManager.getUUIDByDiscordId(discordId);
 
                 if (playerUUID == null) {
-                    event.reply("⚠️ Minecraft hesabınız bulunamadı, ya da hesabınız eşlenmemiş!")
+                    event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-odul-butonu.hesap-bulunamadi")))
                             .setEphemeral(true)
                             .queue();
                     break;
                 }
-
-                event.reply("🎁 Ödül durumu kontrol ediliyor...")
+                event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-odul-butonu.kontrol-ediliyor")))
                         .setEphemeral(true)
                         .queue(hook -> {
-                            AgnesEsle.getInstance().handleRewardCheck(playerUUID, discordId, hook);
+                            AgnesEsle.getInstance().handleRewardCheck(playerUUID, hook);
                         });
-
                 break;
-
-
-
-
-
-
         }
 
-        // 2FA Butonları
+
 
         if (id.startsWith("2fa_confirm_")) {
             try {
@@ -305,7 +246,7 @@ public class DiscordBot extends ListenerAdapter {
                 }
                 String raporlananDiscordId = parts[2];
                 String uuidStr = parts[3];
-                String yetkiliRolId = AgnesEsle.getInstance().getConfig().getString("admin-role-id");
+                String yetkiliRolId = AgnesEsle.getInstance().getMainConfig().adminRoleId;
 
                 if (yetkiliRolId == null || Objects.requireNonNull(event.getMember()).getRoles().stream().noneMatch(role -> role.getId().equals(yetkiliRolId))) {
                     event.reply(MessageUtil.getMessage("discord-button-no-permission")).setEphemeral(true).queue();
@@ -341,7 +282,7 @@ public class DiscordBot extends ListenerAdapter {
                     return;
                 }
                 String uuidStr = parts[3];
-                String yetkiliRolId = AgnesEsle.getInstance().getConfig().getString("admin-role-id");
+                String yetkiliRolId = AgnesEsle.getInstance().getMainConfig().adminRoleId;
 
                 if (yetkiliRolId == null || Objects.requireNonNull(event.getMember()).getRoles().stream().noneMatch(role -> role.getId().equals(yetkiliRolId))) {
                     event.reply(MessageUtil.getMessage("discord-button-no-permission")).setEphemeral(true).queue();
@@ -376,7 +317,6 @@ public class DiscordBot extends ListenerAdapter {
 
     @SuppressWarnings("deprecation")
     @Override
-    // Eşle Komutu
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         try {
             if (event.getName().equals("eşle")) {
@@ -429,7 +369,7 @@ public class DiscordBot extends ListenerAdapter {
                 String sebep = Objects.requireNonNull(event.getOption("sebep")).getAsString();
                 String raporlayanKullanici = Objects.requireNonNull(event.getUser()).getAsTag();
 
-                String logKanalId = AgnesEsle.getInstance().getConfig().getString("log-channel-id");
+                String logKanalId = AgnesEsle.getInstance().getMainConfig().logChannelId;
                 if (logKanalId == null || logKanalId.isEmpty()) {
                     event.reply(MessageUtil.getMessage("discord-report-channel-not-set")).setEphemeral(true).queue();
                     return;
@@ -452,7 +392,7 @@ public class DiscordBot extends ListenerAdapter {
 
                 logKanali.sendMessageEmbeds(embed.build()).queue();
 
-                setUserCooldown(userId, reportCooldowns); // Cooldown'ı başlat
+                setUserCooldown(userId, reportCooldowns);
                 event.reply(MessageUtil.getMessage("discord-report-success")).setEphemeral(true).queue();
             }
             else if (event.getName().equals("bilgi")) {
@@ -478,7 +418,7 @@ public class DiscordBot extends ListenerAdapter {
 
 
     public void changeNickname(String discordId, String newNickname) {
-        String guildId = AgnesEsle.getInstance().getConfig().getString("guild-id");
+        String guildId = AgnesEsle.getInstance().getMainConfig().guildId;
         if (guildId == null || guildId.isEmpty()) {
             System.out.println("AgnHesapEşle: Guild ID ayarlanmamış.");
             return;
@@ -512,9 +452,8 @@ public class DiscordBot extends ListenerAdapter {
     }
 
 
-          // Eşlediğinde Rol Verme İşlevi
     public void addRoleToMember(String discordId, String roleId) {
-        String guildId = AgnesEsle.getInstance().getConfig().getString("guild-id");
+        String guildId = AgnesEsle.getInstance().getMainConfig().guildId;
         if (guildId == null || guildId.isEmpty()) {
             System.out.println("AgnHesapEşle: Guild ID ayarlanmamış.");
             return;
@@ -543,7 +482,6 @@ public class DiscordBot extends ListenerAdapter {
 
 
 
-      // 2FA Gönderme işlevi
     public void send2FAConfirmationMessage(UUID playerUUID, String playerName, String newIpAddress) {
         String discordId = EslestirmeManager.getDiscordId(playerUUID);
         if (discordId == null) {
@@ -577,7 +515,6 @@ public class DiscordBot extends ListenerAdapter {
             logger.warning("2FA onayı için " + discordId + " ID'li kullanıcıya DM gönderilemedi.");
         });
     }
-    //Cooldown
     private boolean isUserOnCooldown(String userId, Cache<String, Long> cooldowns, long cooldownTimeSeconds, net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent event) {
         Long lastUsed = cooldowns.getIfPresent(userId);
 
@@ -604,69 +541,86 @@ public class DiscordBot extends ListenerAdapter {
 
     public void shutdown() {
         if (jda != null) jda.shutdownNow();
-        if (scheduler != null) scheduler.shutdownNow();
     }
 
     public JDA getJda() {
         return jda;
     }
 
-     //Hesap Durumu Butonu İçin
     private void handleHesapDurumu(ButtonInteractionEvent event) {
         String discordId = event.getUser().getId();
         UUID uuid = EslestirmeManager.getUUIDByDiscordId(discordId);
 
         if (uuid == null) {
-            event.reply("Bu Discord hesabı herhangi bir Minecraft hesabıyla eşleşmemiş.").setEphemeral(true).queue();
+            event.reply(MessageUtil.stripColors(
+                    MessageUtil.getMessage("discord-hesap-durumu.eslesmemis")
+            )).setEphemeral(true).queue();
             return;
         }
 
         String playerName = Bukkit.getOfflinePlayer(uuid).getName();
         boolean is2FA = EslestirmeManager.isIkiFAOpen(uuid);
 
-        File playerDataFile = new File("plugins/AgnesEsle/data.json");
+        long eslesmeMillis = EslestirmeManager.getEslesmeTarihi(uuid);
         long days = 0;
-        if (playerDataFile.exists()) {
-            days = playerDataFile.lastModified();
-            long now = System.currentTimeMillis();
-            days = (now - days) / (1000 * 60 * 60 * 24);
+        if (eslesmeMillis > 0) {
+            days = (System.currentTimeMillis() - eslesmeMillis) / (1000L * 60 * 60 * 24);
         }
 
+        Map<String, String> vars = new HashMap<>();
+        vars.put("days", String.valueOf(days));
+
         EmbedBuilder embed = new EmbedBuilder()
-                .setTitle("📄 Hesap Durumu")
+                .setTitle(MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.embed-baslik")))
                 .setColor(Color.CYAN)
-                .addField("Oyuncu Adı", playerName != null ? playerName : "Bilinmiyor", false)
-                .addField("2FA Durumu", is2FA ? "✅ Açık" : "❌ Kapalı", false)
-                .addField("Eşleşme Tarihi", "Veri dosyasına göre yaklaşık " + days + " gün önce", false)
-                .setFooter("Hesap durumu bilgisi");
+                .addField(
+                        MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.field-oyuncu")),
+                        playerName != null ? playerName : "Bilinmiyor",
+                        false
+                )
+                .addField(
+                        MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.field-2fa")),
+                        is2FA
+                                ? MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.acik"))
+                                : MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.kapali")),
+                        false
+                )
+                .addField(
+                        MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.field-tarih")),
+                        MessageUtil.stripColors(
+                                MessageUtil.getMessage("discord-hesap-durumu.field-tarih-deger", vars)
+                        ),
+                        false
+                )
+                .setFooter(MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.footer")));
 
         event.replyEmbeds(embed.build()).setEphemeral(true).queue();
     }
 
 
-    // Eşleşme Kaldırma Butonu İşlevi
+
+
     private void handleEslesmeyiKaldir(ButtonInteractionEvent event) {
         String discordId = event.getUser().getId();
         UUID uuid = EslestirmeManager.getUUIDByDiscordId(discordId);
 
         if (uuid == null) {
-            event.reply("Bu Discord hesabı herhangi bir Minecraft hesabıyla eşleşmemiş.").setEphemeral(true).queue();
+            event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-kaldir-butonu.eslesmemis"))).setEphemeral(true).queue();
             return;
         }
 
         EslestirmeManager.kaldirEslesme(uuid);
 
-        event.reply("Eşleşme başarıyla kaldırıldı. Artık bu hesap eşleşmiş değil.").setEphemeral(true).queue();
+        event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-kaldir-butonu.basarili"))).setEphemeral(true).queue();
     }
 
 
 
-     // Eşleştirme Log Gönderme
     public void sendEslestirmeEmbed(UUID playerUUID, String discordId) {
         OfflinePlayer player = Bukkit.getOfflinePlayer(playerUUID);
         String playerName = player.getName() != null ? player.getName() : "Bilinmiyor";
 
-        String logChannelId = AgnesEsle.getInstance().getConfig().getString("log-channel-id");
+        String logChannelId = AgnesEsle.getInstance().getMainConfig().logChannelId;
         if (logChannelId == null || logChannelId.isEmpty()) {
             logger.warning("Log kanalı ID'si ayarlanmamış.");
             return;
@@ -702,5 +656,4 @@ public class DiscordBot extends ListenerAdapter {
 
         logChannel.sendMessageEmbeds(embed.build()).queue();
     }
-
 }

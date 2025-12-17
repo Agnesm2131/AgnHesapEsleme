@@ -28,6 +28,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.42.0.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-api</artifactId>
             <version>4.13.1</version>
@@ -73,6 +79,12 @@
             <groupId>com.github.bentahsin</groupId>
             <artifactId>BenthPAPIManager</artifactId>
             <version>v1.0.3-b1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.bentahsin</groupId>
+            <artifactId>configuration</artifactId>
+            <version>v1.0.3</version>
         </dependency>
 
         <dependency>
@@ -141,27 +153,31 @@
                             <relocations>
                                 <relocation>
                                     <pattern>net.dv8tion</pattern>
-                                    <shadedPattern>me.agnes.shaded.jda</shadedPattern>
+                                    <shadedPattern>me.agnes.libs.jda</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.slf4j</pattern>
-                                    <shadedPattern>me.agnes.shaded.slf4j</shadedPattern>
+                                    <shadedPattern>me.agnes.libs.slf4j</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.github.benmanes.caffeine</pattern>
-                                    <shadedPattern>me.agnes.shaded.caffeine</shadedPattern>
+                                    <shadedPattern>me.agnes.libs.caffeine</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>co.aikar</pattern>
-                                    <shadedPattern>me.agnes.shaded.acf</shadedPattern>
+                                    <shadedPattern>me.agnes.libs.acf</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>co.aikar.locales</pattern>
-                                    <shadedPattern>me.agnes.shaded.locales</shadedPattern>
+                                    <shadedPattern>me.agnes.libs.locales</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.bentahsin.benthpapimanager</pattern>
-                                    <shadedPattern>me.agnes.shaded.benthpapimanager</shadedPattern>
+                                    <shadedPattern>me.agnes.libs.benthpapimanager</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.bentahsin.configuration</pattern>
+                                    <shadedPattern>me.agnes.libs.configuration</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>
