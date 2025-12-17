@@ -1,8 +1,11 @@
-<<<<<<< HEAD
-# AgnHesapEsleme
-AgnHesapEsleme Developer Source
+
 =======
 ![Agn](https://cdn.modrinth.com/data/cached_images/17f1bf40e839c4c357808e39cc7c7844877a365e_0.webp)
+
+![Agn2](https://media.discordapp.net/attachments/1450885204326748181/1450916515590307850/OvqKgCB.png?ex=694446ce&is=6942f54e&hm=d6414bbec32244c0c91c1b007c6f9bf71ff314718569f59cccd0d072188d78fe&=&format=webp&quality=lossless&width=1229&height=819)
+![Agn3](https://media.discordapp.net/attachments/1450885204326748181/1450916501400850533/MYzMpz3.png?ex=694446ca&is=6942f54a&hm=f025da0da6e45fd947fe6c280f92b0a89b8f1046fb90452286af6a0d875e6021&=&format=webp&quality=lossless&width=1229&height=819)
+
+
 
 ## Gereksinimler
 
