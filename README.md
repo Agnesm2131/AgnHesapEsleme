@@ -1,9 +1,5 @@
 
-=======
-![Agn](https://cdn.modrinth.com/data/cached_images/17f1bf40e839c4c357808e39cc7c7844877a365e_0.webp)
-
 ![Agn2](https://media.discordapp.net/attachments/1440067248185409557/1451247886485684254/8JMqBcY.png?ex=6946242b&is=6944d2ab&hm=7922bdbeefa691d394edc9003a3c7f171823d904153db88e9323ec94de0c6b7d&=&format=webp&quality=lossless&width=1229&height=819)
-
 
 ![Agn3](https://media.discordapp.net/attachments/1440067248185409557/1451247553378254919/lPrXgtx.png?ex=694623db&is=6944d25b&hm=c5326efeec78c394ae600a1c46dd1f62b99d4a2ed9221cbfb4d27f7ff82071f2&=&format=webp&quality=lossless&width=1229&height=819)
 
