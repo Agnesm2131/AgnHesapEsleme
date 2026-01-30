@@ -8,6 +8,7 @@ import me.agnes.agnesesle.data.EslestirmeManager;
 import me.agnes.agnesesle.discord.DiscordBot;
 import me.agnes.agnesesle.util.LuckPermsUtil;
 import me.agnes.agnesesle.util.MessageUtil;
+import me.agnes.agnesesle.util.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Particle;
@@ -59,7 +60,6 @@ public class EsleCommandACF extends BaseCommand {
         player.sendMessage(MessageUtil.getMessage("kod-verildi.message", vars));
     }
 
-
     @SuppressWarnings("unused")
     @Subcommand("%sub_iptal")
     @Description("Bekleyen eşleşme kodunu iptal eder.")
@@ -83,7 +83,8 @@ public class EsleCommandACF extends BaseCommand {
     @Description("Discord'dan gelen eşleşme talebini onaylar.")
     public void onOnayla(BukkitCommandIssuer issuer) {
         Player player = issuer.getPlayer();
-        if (player == null) return;
+        if (player == null)
+            return;
 
         if (!EslestirmeManager.beklemeVar(player.getUniqueId())) {
             playError(player);
@@ -106,9 +107,10 @@ public class EsleCommandACF extends BaseCommand {
 
         if (ilkEslesme) {
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
-            player.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, player.getLocation().add(0, 1, 0), 15, 0.5, 0.5, 0.5);
+            player.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, player.getLocation().add(0, 1, 0), 15, 0.5, 0.5,
+                    0.5);
 
-            Bukkit.getScheduler().runTaskAsynchronously(AgnesEsle.getInstance(), () -> {
+            SchedulerUtil.runAsync(() -> {
                 String discordId = EslestirmeManager.getDiscordId(player.getUniqueId());
                 if (discordId != null) {
                     DiscordBot bot = AgnesEsle.getInstance().getDiscordBot();
@@ -125,11 +127,13 @@ public class EsleCommandACF extends BaseCommand {
                                     String roleName = entry.getKey();
                                     String roleId = entry.getValue();
 
-                                    if (roleId == null || roleId.isEmpty()) continue;
+                                    if (roleId == null || roleId.isEmpty())
+                                        continue;
 
                                     if (group.equalsIgnoreCase(roleName)) {
                                         bot.addRoleToMember(discordId, roleId);
-                                        plugin.getLogger().info(player.getName() + " oyuncusuna " + roleName + " Discord rolü verildi.");
+                                        plugin.getLogger().info(player.getName() + " oyuncusuna " + roleName
+                                                + " Discord rolü verildi.");
                                     }
                                 }
                             }
@@ -226,7 +230,8 @@ public class EsleCommandACF extends BaseCommand {
             vars.put("discordId", id);
             sender.sendMessage(MessageUtil.getMessage("list-entry", vars));
         }
-        if (maxPage > 1) sender.sendMessage(MessageUtil.getMessage("list-footer"));
+        if (maxPage > 1)
+            sender.sendMessage(MessageUtil.getMessage("list-footer"));
         playSuccess(sender);
     }
 
@@ -304,36 +309,72 @@ public class EsleCommandACF extends BaseCommand {
     public void onHelp(Player sender) {
         sender.sendMessage(MessageUtil.getMessage("help-header"));
 
-        sender.sendMessage(MessageUtil.getMessage("help-format", new HashMap<String, String>() {{
-            put("command", "eşle"); put("syntax", ""); put("description", "Eşleşme kodu üretir.");
-        }}));
-        sender.sendMessage(MessageUtil.getMessage("help-format", new HashMap<String, String>() {{
-            put("command", "onayla"); put("syntax", ""); put("description", "Eşleşmeyi onaylar.");
-        }}));
-        sender.sendMessage(MessageUtil.getMessage("help-format", new HashMap<String, String>() {{
-            put("command", "iptal"); put("syntax", ""); put("description", "Bekleyen kodu iptal eder.");
-        }}));
-        sender.sendMessage(MessageUtil.getMessage("help-format", new HashMap<String, String>() {{
-            put("command", "kaldır"); put("syntax", ""); put("description", "Eşleşmeyi kaldırır.");
-        }}));
-        sender.sendMessage(MessageUtil.getMessage("help-format", new HashMap<String, String>() {{
-            put("command", "2fa"); put("syntax", "<aç|kapat>"); put("description", "İki faktörlü doğrulamayı yönetir.");
-        }}));
+        sender.sendMessage(MessageUtil.getMessage("help-format", new HashMap<String, String>() {
+            {
+                put("command", "eşle");
+                put("syntax", "");
+                put("description", "Eşleşme kodu üretir.");
+            }
+        }));
+        sender.sendMessage(MessageUtil.getMessage("help-format", new HashMap<String, String>() {
+            {
+                put("command", "onayla");
+                put("syntax", "");
+                put("description", "Eşleşmeyi onaylar.");
+            }
+        }));
+        sender.sendMessage(MessageUtil.getMessage("help-format", new HashMap<String, String>() {
+            {
+                put("command", "iptal");
+                put("syntax", "");
+                put("description", "Bekleyen kodu iptal eder.");
+            }
+        }));
+        sender.sendMessage(MessageUtil.getMessage("help-format", new HashMap<String, String>() {
+            {
+                put("command", "kaldır");
+                put("syntax", "");
+                put("description", "Eşleşmeyi kaldırır.");
+            }
+        }));
+        sender.sendMessage(MessageUtil.getMessage("help-format", new HashMap<String, String>() {
+            {
+                put("command", "2fa");
+                put("syntax", "<aç|kapat>");
+                put("description", "İki faktörlü doğrulamayı yönetir.");
+            }
+        }));
 
         if (sender.hasPermission("agnesesle.admin")) {
             sender.sendMessage(" ");
-            sender.sendMessage(MessageUtil.getMessage("help-format", new HashMap<String, String>() {{
-                put("command", "liste"); put("syntax", "[sayfa]"); put("description", "Tüm eşleşmeleri listeler.");
-            }}));
-            sender.sendMessage(MessageUtil.getMessage("help-format", new HashMap<String, String>() {{
-                put("command", "sıfırla"); put("syntax", "<oyuncu>"); put("description", "Bir oyuncunun eşleşmesini sıfırlar.");
-            }}));
-            sender.sendMessage(MessageUtil.getMessage("help-format", new HashMap<String, String>() {{
-                put("command", "ödül"); put("syntax", "<oyuncu>"); put("description", "Oyuncuya manuel ödül verir.");
-            }}));
-            sender.sendMessage(MessageUtil.getMessage("help-format", new HashMap<String, String>() {{
-                put("command", "yenile"); put("syntax", ""); put("description", "Eklentiyi yeniden yükler.");
-            }}));
+            sender.sendMessage(MessageUtil.getMessage("help-format", new HashMap<String, String>() {
+                {
+                    put("command", "liste");
+                    put("syntax", "[sayfa]");
+                    put("description", "Tüm eşleşmeleri listeler.");
+                }
+            }));
+            sender.sendMessage(MessageUtil.getMessage("help-format", new HashMap<String, String>() {
+                {
+                    put("command", "sıfırla");
+                    put("syntax", "<oyuncu>");
+                    put("description", "Bir oyuncunun eşleşmesini sıfırlar.");
+                }
+            }));
+            sender.sendMessage(MessageUtil.getMessage("help-format", new HashMap<String, String>() {
+                {
+                    put("command", "ödül");
+                    put("syntax", "<oyuncu>");
+                    put("description", "Oyuncuya manuel ödül verir.");
+                }
+            }));
+            sender.sendMessage(MessageUtil.getMessage("help-format", new HashMap<String, String>() {
+                {
+                    put("command", "yenile");
+                    put("syntax", "");
+                    put("description", "Eklentiyi yeniden yükler.");
+                }
+            }));
         }
 
         sender.sendMessage(MessageUtil.getMessage("help-footer"));

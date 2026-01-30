@@ -54,6 +54,7 @@ roles:
 booster-role-id: "booster-role-id"
 booster-channel-id: "booster-channel-id"
 booster-reward-time: 86400
+booster-role-time: 86400
 
 booster-rewards:
   5TaneElmas:

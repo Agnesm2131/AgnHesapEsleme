@@ -3,6 +3,7 @@ package me.agnes.agnesesle.discord;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import me.agnes.agnesesle.util.MessageUtil;
+import me.agnes.agnesesle.util.SchedulerUtil;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -25,6 +26,7 @@ import org.bukkit.entity.Player;
 import me.agnes.agnesesle.AgnesEsle;
 import me.agnes.agnesesle.configuration.MainConfig;
 import me.agnes.agnesesle.data.EslestirmeManager;
+import me.agnes.agnesesle.data.BoosterManager;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 import java.awt.Color;
@@ -41,26 +43,28 @@ public class DiscordBot extends ListenerAdapter {
             UUID uuid = EslestirmeManager.koduKontrolEt(kod);
 
             if (uuid == null) {
-                event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-modal-cevap.gecersiz-kod"))).setEphemeral(true).queue();
+                event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-modal-cevap.gecersiz-kod")))
+                        .setEphemeral(true).queue();
                 return;
             }
 
             if (EslestirmeManager.discordZatenEslesmis(event.getUser().getId())) {
-                event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-modal-cevap.discord-zaten-esli"))).setEphemeral(true).queue();
+                event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-modal-cevap.discord-zaten-esli")))
+                        .setEphemeral(true).queue();
                 return;
             }
 
             boolean basarili = EslestirmeManager.eslestir(uuid, event.getUser().getId());
 
             if (basarili) {
-                event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-modal-cevap.basarili-yonlendirme"))).setEphemeral(true).queue();
+                event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-modal-cevap.basarili-yonlendirme")))
+                        .setEphemeral(true).queue();
             } else {
-                event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-modal-cevap.basarisiz"))).setEphemeral(true).queue();
+                event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-modal-cevap.basarisiz")))
+                        .setEphemeral(true).queue();
             }
         }
     }
-
-
 
     private static final long ESLE_COOLDOWN_SECONDS = 60; // 1 dakika
     private static final long REPORT_COOLDOWN_SECONDS = 300; // 5 dakika
@@ -93,7 +97,8 @@ public class DiscordBot extends ListenerAdapter {
     public void sendBoosterPanel() {
         MainConfig config = AgnesEsle.getInstance().getMainConfig();
         TextChannel kanal = jda.getTextChannelById(config.boosterChannelId);
-        if (kanal == null) return;
+        if (kanal == null)
+            return;
 
         String base = "information-messages.booster-message";
 
@@ -114,77 +119,76 @@ public class DiscordBot extends ListenerAdapter {
                         sb.length() > 0
                                 ? sb.toString()
                                 : MessageUtil.getMessage(base + ".rewards-empty"),
-                        false
-                )
+                        false)
                 .setFooter(
-                        MessageUtil.getMessage(base + ".footer", footerVars)
-                )
+                        MessageUtil.getMessage(base + ".footer", footerVars))
                 .setTimestamp(java.time.Instant.now());
 
         kanal.getHistory().retrievePast(10).queue(msgs -> {
-            if (!msgs.isEmpty()) kanal.purgeMessages(msgs);
+            if (!msgs.isEmpty())
+                kanal.purgeMessages(msgs);
 
             kanal.sendMessageEmbeds(eb.build())
                     .setActionRow(
                             Button.primary(
                                     "booster_odul_al",
-                                    MessageUtil.getMessage(base + ".button-claim")
-                            ),
+                                    MessageUtil.getMessage(base + ".button-claim")),
                             Button.secondary(
                                     "booster_durum_bak",
-                                    MessageUtil.getMessage(base + ".button-status")
-                            )
-                    ).queue();
+                                    MessageUtil.getMessage(base + ".button-status")))
+                    .queue();
         });
     }
-
-
-    private String formatTime(long seconds) {
-        long h = seconds / 3600;
-        long m = (seconds % 3600) / 60;
-        long s = seconds % 60;
-        return String.format("%02d saat %02d dakika %02d saniye", h, m, s);
-    }
-
 
     public void start() {
         try {
             jda = JDABuilder.createDefault(token)
-                    .setActivity(net.dv8tion.jda.api.entities.Activity.playing(MessageUtil.getMessage("discord-bot-status-starting")))
+                    .setActivity(net.dv8tion.jda.api.entities.Activity
+                            .playing(MessageUtil.getMessage("discord-bot-status-starting")))
                     .addEventListeners(this)
                     .build()
                     .awaitReady();
 
             // Komutlar
             jda.upsertCommand("eşle", "Bir hesap eşleştirme kodu girin")
-                    .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.STRING, "kod", "Eşleştirme kodu", true)
+                    .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.STRING, "kod", "Eşleştirme kodu",
+                            true)
                     .queue();
             jda.upsertCommand("raporla", "Bir oyuncuyu raporlayın")
-                    .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.STRING, "oyuncu", "Raporlanacak oyuncu adı", true)
-                    .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.STRING, "sebep", "Rapor sebebi", true)
+                    .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.STRING, "oyuncu",
+                            "Raporlanacak oyuncu adı", true)
+                    .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.STRING, "sebep", "Rapor sebebi",
+                            true)
+                    .queue();
+            jda.upsertCommand("sorgula", "Bir Discord üyesinin oyun içi eşleştirme bilgilerini sorgula")
+                    .addOption(
+                            net.dv8tion.jda.api.interactions.commands.OptionType.USER,
+                            "kullanıcı",
+                            "Sorgulanacak Discord üyesi",
+                            true)
                     .queue();
             jda.upsertCommand("bilgi", "Bir kullanıcı hakkında bilgi al")
-                    .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.USER, "kullanıcı", "Bilgi alınacak kullanıcı", true)
+                    .addOption(net.dv8tion.jda.api.interactions.commands.OptionType.USER, "kullanıcı",
+                            "Bilgi alınacak kullanıcı", true)
                     .queue();
 
             sendBoosterPanel();
 
             // Durum mesajları
             final List<String> durumlar = AgnesEsle.getInstance().getMainConfig().statusMessages;
-            new org.bukkit.scheduler.BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (jda == null || jda.getStatus() != JDA.Status.CONNECTED) return;
-                    if (durumlar == null || durumlar.isEmpty()) return;
+            SchedulerUtil.runTimerSync(() -> {
+                if (jda == null || jda.getStatus() != JDA.Status.CONNECTED)
+                    return;
+                if (durumlar == null || durumlar.isEmpty())
+                    return;
 
-                    int index = (int) ((System.currentTimeMillis() / 5000) % durumlar.size());
-                    String mesaj = durumlar.get(index);
-                    String finalMesaj = parsePlaceholders(mesaj);
-                    net.dv8tion.jda.api.entities.Activity activity = net.dv8tion.jda.api.entities.Activity.playing(finalMesaj);
-                    jda.getPresence().setActivity(activity);
-                }
-            }.runTaskTimer(AgnesEsle.getInstance(), 0L, 100L);
-
+                int index = (int) ((System.currentTimeMillis() / 5000) % durumlar.size());
+                String mesaj = durumlar.get(index);
+                String finalMesaj = parsePlaceholders(mesaj);
+                net.dv8tion.jda.api.entities.Activity activity = net.dv8tion.jda.api.entities.Activity
+                        .playing(finalMesaj);
+                jda.getPresence().setActivity(activity);
+            }, 0L, 100L);
 
             String infoMessageStatus = AgnesEsle.getInstance().getMainConfig().informationMessage;
             if ("gönderilmedi".equalsIgnoreCase(infoMessageStatus)) {
@@ -210,18 +214,14 @@ public class DiscordBot extends ListenerAdapter {
                             .addField(
                                     MessageUtil.getMessage(base + ".how-title"),
                                     MessageUtil.getMessage(base + ".how-text"),
-                                    false
-                            )
+                                    false)
 
                             .addField(
                                     MessageUtil.getMessage(base + ".advantages-title"),
                                     MessageUtil.getMessage(base + ".advantages-text"),
-                                    false
-                            )
+                                    false)
 
                             .setFooter(MessageUtil.getMessage(base + ".footer"));
-
-
 
                     kanal.sendMessageEmbeds(embed.build())
                             .setActionRow(
@@ -232,11 +232,12 @@ public class DiscordBot extends ListenerAdapter {
                                     Button.danger("eslesmeyi_kaldir",
                                             MessageUtil.getMessage(base + ".button-unlink")),
                                     Button.secondary("odul-kontrol",
-                                            MessageUtil.getMessage(base + ".button-reward"))
-                            ).queue();
+                                            MessageUtil.getMessage(base + ".button-reward")))
+                            .queue();
 
                     AgnesEsle.getInstance().getMainConfig().informationMessage = "gönderildi";
-                    AgnesEsle.getInstance().getConfigManager().save(AgnesEsle.getInstance().getMainConfig(), "config.yml");
+                    AgnesEsle.getInstance().getConfigManager().save(AgnesEsle.getInstance().getMainConfig(),
+                            "config.yml");
                 }
             }
 
@@ -245,10 +246,6 @@ public class DiscordBot extends ListenerAdapter {
         }
     }
 
-
-
-
-
     @SuppressWarnings("deprecation")
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
@@ -256,81 +253,13 @@ public class DiscordBot extends ListenerAdapter {
         MainConfig config = AgnesEsle.getInstance().getMainConfig();
         String discordId = event.getUser().getId();
 
-        if (id.equals("booster_odul_al") || id.equals("booster_durum_bak")) {
+        if (id.equals("booster_odul_al")) {
+            BoosterManager.handleBoosterClaim(event);
+            return;
+        }
 
-            final UUID uuid = EslestirmeManager.getUUIDByDiscordId(discordId);
-            if (uuid == null) {
-                event.reply("❌ Bu sistemi kullanabilmek için önce hesabınızı eşleştirmelisiniz!")
-                        .setEphemeral(true).queue();
-                return;
-            }
-
-            boolean hasDiscordRole = event.getMember().getRoles().stream()
-                    .anyMatch(role -> role.getId().equals(config.boosterRoleId));
-            if (!hasDiscordRole) {
-                event.reply("❌ Sunucumuzda aktif bir Booster rolünüz bulunamadı.")
-                        .setEphemeral(true).queue();
-                return;
-            }
-
-            if (id.equals("booster_odul_al")) {
-                long sonAlim = EslestirmeManager.getBoosterSonAlim(uuid);
-                long gecenSure = (System.currentTimeMillis() - sonAlim) / 1000;
-                long beklemeSuresi = config.boosterRoleTime;
-
-                if (gecenSure < beklemeSuresi) {
-                    long kalan = beklemeSuresi - gecenSure;
-                    event.reply("⏳ Ödülü tekrar alabilmek için **" + formatTime(kalan) + "** beklemelisiniz.")
-                            .setEphemeral(true).queue();
-                    return;
-                }
-
-                String tempName = Bukkit.getOfflinePlayer(uuid).getName();
-                if (tempName == null) {
-                    Player onlinePlayer = Bukkit.getPlayer(uuid);
-                    if (onlinePlayer != null) tempName = onlinePlayer.getName();
-                    else {
-                        event.reply("❌ Oyuncu adı veritabanında veya sunucuda bulunamadı.")
-                                .setEphemeral(true).queue();
-                        Bukkit.getLogger().warning("Booster ödül verilemedi: UUID=" + uuid + " için oyuncu adı bulunamadı!");
-                        return;
-                    }
-                }
-
-                final String playerName = tempName;
-                final UUID playerUUID = uuid;
-
-                Bukkit.getScheduler().runTask(AgnesEsle.getInstance(), new Runnable() {
-                    @Override
-                    public void run() {
-                        for (MainConfig.RewardItem rewardItem : config.boosterRewards.values()) {
-                            if (rewardItem.commands != null) {
-                                for (String cmd : rewardItem.commands) {
-                                    String finalCmd = cmd.replace("%player%", playerName);
-                                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCmd);
-                                    Bukkit.getLogger().info("Booster ödül komutu çalıştırıldı: " + finalCmd);
-                                }
-                            }
-                        }
-                        EslestirmeManager.setBoosterSonAlim(playerUUID, System.currentTimeMillis());
-                        event.reply("✅ Booster ödülleriniz başarıyla teslim edildi! İyi oyunlar.")
-                                .setEphemeral(true).queue();
-                        Bukkit.getLogger().info("Booster ödüller başarıyla verildi: UUID=" + playerUUID + ", Oyuncu=" + playerName);
-                    }
-                });
-
-            } else if (id.equals("booster_durum_bak")) {
-                long sonAlim = EslestirmeManager.getBoosterSonAlim(uuid);
-                long gecen = (System.currentTimeMillis() - sonAlim) / 1000;
-                long bekleme = config.boosterRoleTime;
-
-                if (gecen >= bekleme) {
-                    event.reply("✅ Ödülleriniz şu an alınabilir durumda!").setEphemeral(true).queue();
-                } else {
-                    event.reply("📊 Bir sonraki ödül için kalan süre: **" + formatTime(bekleme - gecen) + "**")
-                            .setEphemeral(true).queue();
-                }
-            }
+        if (id.equals("booster_durum_bak")) {
+            BoosterManager.handleBoosterStatus(event);
             return;
         }
 
@@ -344,8 +273,7 @@ public class DiscordBot extends ListenerAdapter {
                                 TextInput.create("kod", "Eşleştirme Kodu", TextInputStyle.SHORT)
                                         .setPlaceholder("Kodunuzu buraya girin")
                                         .setRequired(true)
-                                        .build()
-                        )
+                                        .build())
                         .build();
                 event.replyModal(modal).queue();
                 break;
@@ -377,7 +305,8 @@ public class DiscordBot extends ListenerAdapter {
                 String newIP = parts[3];
                 EslestirmeManager.setKayitliIP(playerUUID, newIP);
                 event.reply(MessageUtil.getMessage("discord-2fa-confirm-reply")).setEphemeral(true).queue();
-                event.getMessage().editMessage(MessageUtil.getMessage("discord-2fa-confirm-message-edit")).setComponents().queue();
+                event.getMessage().editMessage(MessageUtil.getMessage("discord-2fa-confirm-message-edit"))
+                        .setComponents().queue();
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "2FA onayı sırasında bir hata oluştu:", e);
             }
@@ -388,7 +317,8 @@ public class DiscordBot extends ListenerAdapter {
         if (id.startsWith("2fa_deny_")) {
             try {
                 event.reply(MessageUtil.getMessage("discord-2fa-deny-reply")).setEphemeral(true).queue();
-                event.getMessage().editMessage(MessageUtil.getMessage("discord-2fa-deny-message-edit")).setComponents().queue();
+                event.getMessage().editMessage(MessageUtil.getMessage("discord-2fa-deny-message-edit")).setComponents()
+                        .queue();
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "2FA reddi sırasında bir hata oluştu:", e);
             }
@@ -444,11 +374,12 @@ public class DiscordBot extends ListenerAdapter {
                 }
 
                 OfflinePlayer target = Bukkit.getOfflinePlayer(uuidTarget);
-                Bukkit.getScheduler().runTask(AgnesEsle.getInstance(), () -> {
+                SchedulerUtil.runSync(() -> {
                     Bukkit.getBanList(org.bukkit.BanList.Type.NAME).addBan(target.getName(),
                             MessageUtil.getMessage("discord-button-ban-reason"), null, event.getUser().getAsTag());
                     Player p = Bukkit.getPlayer(target.getUniqueId());
-                    if (p != null) p.kickPlayer(MessageUtil.getMessage("discord-button-ban-kick-reason"));
+                    if (p != null)
+                        p.kickPlayer(MessageUtil.getMessage("discord-button-ban-kick-reason"));
                 });
 
                 Map<String, String> vars = new HashMap<>();
@@ -460,12 +391,6 @@ public class DiscordBot extends ListenerAdapter {
             }
         }
     }
-
-
-
-
-
-
 
     @SuppressWarnings("deprecation")
     @Override
@@ -482,10 +407,12 @@ public class DiscordBot extends ListenerAdapter {
 
                 event.deferReply(true).queue();
 
-                Bukkit.getScheduler().runTaskAsynchronously(AgnesEsle.getInstance(), () -> {
+                SchedulerUtil.runAsync(() -> {
                     UUID uuid = EslestirmeManager.koduKontrolEt(kod);
                     if (uuid == null) {
-                        event.getHook().sendMessage(MessageUtil.stripColors(MessageUtil.getMessage("discord-invalid-code"))).queue();
+                        event.getHook()
+                                .sendMessage(MessageUtil.stripColors(MessageUtil.getMessage("discord-invalid-code")))
+                                .queue();
                         return;
                     }
 
@@ -511,6 +438,90 @@ public class DiscordBot extends ListenerAdapter {
                     event.getHook().sendMessage(MessageUtil.getMessage("discord-success")).queue();
                 });
             }
+
+            else if (event.getName().equals("sorgula")) {
+
+                Member member = event.getMember();
+                String adminRoleId = AgnesEsle.getInstance().getMainConfig().adminRoleId;
+
+                // Admin kontrolü
+                if (member == null || adminRoleId == null ||
+                        member.getRoles().stream().noneMatch(r -> r.getId().equals(adminRoleId))) {
+
+                    event.reply("❌ Bu komutu kullanmak için yetkiniz yok.")
+                            .setEphemeral(true)
+                            .queue();
+                    return;
+                }
+
+                User targetUser = Objects.requireNonNull(event.getOption("kullanıcı")).getAsUser();
+                String discordId = targetUser.getId();
+
+                event.deferReply(false).queue(); // HERKESE AÇIK EMBED
+
+                SchedulerUtil.runAsync(() -> {
+
+                    UUID uuid = EslestirmeManager.getUUIDByDiscordId(discordId);
+
+                    EmbedBuilder embed = new EmbedBuilder()
+                            .setTitle("🔍 Hesap Eşleştirme Sorgusu")
+                            .setColor(Color.CYAN)
+                            .setThumbnail(targetUser.getEffectiveAvatarUrl())
+                            .addField("💬 Discord",
+                                    targetUser.getAsMention(),
+                                    false);
+
+                    if (uuid == null) {
+                        embed.addField("🔗 Eşleşme Durumu", "❌ Eşleşmemiş", false)
+                                .setFooter("Sorgulayan: " + event.getUser().getAsTag())
+                                .setTimestamp(java.time.Instant.now());
+
+                        event.getHook().sendMessageEmbeds(embed.build()).queue();
+                        return;
+                    }
+
+                    String playerName = Bukkit.getOfflinePlayer(uuid).getName();
+                    boolean ikiFA = EslestirmeManager.isIkiFAOpen(uuid);
+                    String ip = EslestirmeManager.getKayitliIP(uuid);
+                    long eslesmeTarihi = EslestirmeManager.getEslesmeTarihi(uuid);
+
+                    String minotarUrl = playerName != null
+                            ? "https://minotar.net/helm/" + playerName + "/100.png"
+                            : null;
+
+                    if (minotarUrl != null) {
+                        embed.setThumbnail(minotarUrl);
+                    }
+
+                    embed.addField("🎮 Oyuncu Adı",
+                            playerName != null ? "**" + playerName + "**" : "Bilinmiyor",
+                            false)
+                            .addField("🆔 UUID",
+                                    uuid.toString(),
+                                    false)
+                            .addField("🔗 Eşleşme Durumu",
+                                    "✅ Eşleşmiş",
+                                    false)
+                            .addField("🔐 2FA",
+                                    ikiFA ? "Açık ✅" : "Kapalı ❌",
+                                    false)
+                            .addField("🌐 Kayıtlı IP",
+                                    ip != null ? "||" + ip + "||" : "Yok",
+                                    false);
+
+                    if (eslesmeTarihi > 0) {
+                        embed.addField("📅 Eşleşme Tarihi",
+                                "<t:" + (eslesmeTarihi / 1000) + ":F>",
+                                false);
+                    }
+
+                    embed.setFooter("Sorgulayan: " + event.getUser().getAsTag())
+                            .setTimestamp(java.time.Instant.now());
+
+                    event.getHook().sendMessageEmbeds(embed.build()).queue();
+                });
+            }
+
             else if (event.getName().equals("raporla")) {
                 String userId = event.getUser().getId();
 
@@ -548,9 +559,9 @@ public class DiscordBot extends ListenerAdapter {
                 setUserCooldown(userId, reportCooldowns);
 
                 event.reply(MessageUtil.getMessage("discord-report-success")).setEphemeral(true).queue();
-            }
-            else if (event.getName().equals("bilgi")) {
-                net.dv8tion.jda.api.entities.User targetUser = Objects.requireNonNull(event.getOption("kullanıcı")).getAsUser();
+            } else if (event.getName().equals("bilgi")) {
+                net.dv8tion.jda.api.entities.User targetUser = Objects.requireNonNull(event.getOption("kullanıcı"))
+                        .getAsUser();
                 String discordId = targetUser.getId();
 
                 UUID playerUUID = EslestirmeManager.getUUIDByDiscordId(discordId);
@@ -570,7 +581,6 @@ public class DiscordBot extends ListenerAdapter {
         }
     }
 
-
     public void changeNickname(String discordId, String newNickname) {
         String guildId = AgnesEsle.getInstance().getMainConfig().guildId;
         if (guildId == null || guildId.isEmpty()) {
@@ -579,7 +589,8 @@ public class DiscordBot extends ListenerAdapter {
         }
 
         Guild guild = jda.getGuildById(guildId);
-        if (guild == null) return;
+        if (guild == null)
+            return;
 
         guild.retrieveMemberById(discordId).queue(member -> {
             Member self = guild.getSelfMember();
@@ -599,15 +610,6 @@ public class DiscordBot extends ListenerAdapter {
         });
     }
 
-
-
-
-
-
-
-
-
-
     private void sendPrivateMessage(String discordId, String message) {
         User user = jda.getUserById(discordId);
         if (user != null) {
@@ -616,10 +618,6 @@ public class DiscordBot extends ListenerAdapter {
             });
         }
     }
-
-
-
-
 
     public void addRoleToMember(String discordId, String roleId) {
         String guildId = AgnesEsle.getInstance().getMainConfig().guildId;
@@ -643,25 +641,23 @@ public class DiscordBot extends ListenerAdapter {
             System.out.println("Rol bulunuyor, ekleniyor: " + role.getName());
             guild.addRoleToMember(member, role).queue(
                     success -> System.out.println("Rol başarıyla verildi: " + role.getName()),
-                    error -> System.out.println("Rol verilirken hata: " + error.getMessage())
-            );
+                    error -> System.out.println("Rol verilirken hata: " + error.getMessage()));
         }, error -> System.out.println("Üye bulunamadı veya hata oluştu: " + error.getMessage()));
     }
 
-
-
-
-      // 2FA Gönderme işlevi
+    // 2FA Gönderme işlevi
     public void send2FAConfirmationMessage(UUID playerUUID, String playerName, String newIpAddress) {
         String discordId = EslestirmeManager.getDiscordId(playerUUID);
         if (discordId == null) {
             logger.warning("2FA mesajı gönderilemedi: " + playerUUID + " için Discord ID bulunamadı.");
             return;
         }
-        if (jda == null) return;
+        if (jda == null)
+            return;
 
         jda.retrieveUserById(discordId).queue(user -> {
-            if (user == null) return;
+            if (user == null)
+                return;
 
             Map<String, String> vars = new HashMap<>();
             vars.put("player", playerName);
@@ -685,8 +681,10 @@ public class DiscordBot extends ListenerAdapter {
             logger.warning("2FA onayı için " + discordId + " ID'li kullanıcıya DM gönderilemedi.");
         });
     }
-    //Cooldown
-    private boolean isUserOnCooldown(String userId, Cache<String, Long> cooldowns, long cooldownTimeSeconds, net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent event) {
+
+    // Cooldown
+    private boolean isUserOnCooldown(String userId, Cache<String, Long> cooldowns, long cooldownTimeSeconds,
+            net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent event) {
         Long lastUsed = cooldowns.getIfPresent(userId);
 
         if (lastUsed != null) {
@@ -711,13 +709,13 @@ public class DiscordBot extends ListenerAdapter {
     }
 
     public void shutdown() {
-        if (jda != null) jda.shutdownNow();
+        if (jda != null)
+            jda.shutdownNow();
     }
 
     public JDA getJda() {
         return jda;
     }
-
 
     private void handleHesapDurumu(ButtonInteractionEvent event) {
         String discordId = event.getUser().getId();
@@ -725,8 +723,7 @@ public class DiscordBot extends ListenerAdapter {
 
         if (uuid == null) {
             event.reply(MessageUtil.stripColors(
-                    MessageUtil.getMessage("discord-hesap-durumu.eslesmemis")
-            )).setEphemeral(true).queue();
+                    MessageUtil.getMessage("discord-hesap-durumu.eslesmemis"))).setEphemeral(true).queue();
             return;
         }
 
@@ -748,28 +745,22 @@ public class DiscordBot extends ListenerAdapter {
                 .addField(
                         MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.field-oyuncu")),
                         playerName != null ? playerName : "Bilinmiyor",
-                        false
-                )
+                        false)
                 .addField(
                         MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.field-2fa")),
                         is2FA
                                 ? MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.acik"))
                                 : MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.kapali")),
-                        false
-                )
+                        false)
                 .addField(
                         MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.field-tarih")),
                         MessageUtil.stripColors(
-                                MessageUtil.getMessage("discord-hesap-durumu.field-tarih-deger", vars)
-                        ),
-                        false
-                )
+                                MessageUtil.getMessage("discord-hesap-durumu.field-tarih-deger", vars)),
+                        false)
                 .setFooter(MessageUtil.stripColors(MessageUtil.getMessage("discord-hesap-durumu.footer")));
 
         event.replyEmbeds(embed.build()).setEphemeral(true).queue();
     }
-
-
 
     // Eşleşme Kaldırma Butonu İşlevi
     private void handleEslesmeyiKaldir(ButtonInteractionEvent event) {
@@ -777,19 +768,18 @@ public class DiscordBot extends ListenerAdapter {
         UUID uuid = EslestirmeManager.getUUIDByDiscordId(discordId);
 
         if (uuid == null) {
-            event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-kaldir-butonu.eslesmemis"))).setEphemeral(true).queue();
+            event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-kaldir-butonu.eslesmemis")))
+                    .setEphemeral(true).queue();
             return;
         }
 
         EslestirmeManager.kaldirEslesme(uuid);
 
-        event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-kaldir-butonu.basarili"))).setEphemeral(true).queue();
+        event.reply(MessageUtil.stripColors(MessageUtil.getMessage("discord-kaldir-butonu.basarili")))
+                .setEphemeral(true).queue();
     }
 
-
-
-
-     // Eşleştirme Log Gönderme
+    // Eşleştirme Log Gönderme
     public void sendEslestirmeEmbed(UUID playerUUID, String discordId) {
         OfflinePlayer player = Bukkit.getOfflinePlayer(playerUUID);
         String playerName = player.getName() != null ? player.getName() : "Bilinmiyor";
@@ -824,8 +814,12 @@ public class DiscordBot extends ListenerAdapter {
                 .setThumbnail(avatarUrl)
                 .addField(playerFieldName, playerName, true)
                 .addField(discordFieldName, "<@" + discordId + ">", true)
-                .addField(dateFieldName, java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm").format(java.time.LocalDateTime.now()), false)
-                .addField(securityFieldName, EslestirmeManager.isIkiFAOpen(playerUUID) ? "2FA Aktif ✅" : "2FA Kapalı ❌", false)
+                .addField(dateFieldName,
+                        java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+                                .format(java.time.LocalDateTime.now()),
+                        false)
+                .addField(securityFieldName, EslestirmeManager.isIkiFAOpen(playerUUID) ? "2FA Aktif ✅" : "2FA Kapalı ❌",
+                        false)
                 .setFooter(footer);
 
         logChannel.sendMessageEmbeds(embed.build()).queue();

@@ -1,218 +1,85 @@
-![Agn](https://cdn.modrinth.com/data/cached_images/17f1bf40e839c4c357808e39cc7c7844877a365e_0.webp)
+# 🔗 AgnAccountLinking - Advanced Minecraft & Discord Integration
 
-## Gereksinimler
+A professional, high-performance account linking plugin designed for Spigot/Paper/Folia servers. This plugin bridges the gap between your Minecraft server and Discord community with 2FA security, role synchronization, and an advanced booster reward system.
 
-- Java 8 veya daha yeni bir sürüm
-- Spigot veya Forkleri (Paper, Purpur gibi)
-- LuckPerms
+## 🌟 Key Features
+*   **Folia Support**: Fully optimized for multi-threaded region-based servers.
+*   **Discord 2FA**: Protect player accounts by requiring Discord confirmation when logging in from a new IP.
+*   **Role Sync**: Automatically synchronize LuckPerms groups with Discord roles.
+*   **Advanced Booster System**: Reward your server supporters through a dedicated Discord panel.
+*   **Multi-Language Support**: Complete translations for English, Turkish, German, French, Spanish, and Chinese.
 
+---
 
-## **ÖZELLİKLER:** (TR)
+## 🚀 Installation & Setup
 
-- **Otomatik Bilgilendirme Sistemi:** Eklenti, Minecraft sunucusunda gerçekleşen belirli olayları otomatik olarak Discord sunucusuna bildirir. Bu sistem sayesinde oyuncu aktiviteleri, eşleşme durumu ve özel bildirimler Discord üzerinden ilgili kanallara gönderilir. Bildirimler, config.yml dosyası aracılığıyla özelleştirilebilir ve kanal bazlı yönlendirme desteklenir.
+### 1. Requirements
+*   **LuckPerms**: Required for role synchronization.
+*   **PlaceholderAPI**: Optional, but recommended for dynamic messages.
+*   **Java 17 or higher**: Modern Java environment.
 
+### 2. Creating a Discord Bot
+1.  Go to the [Discord Developer Portal](https://discord.com/developers/applications).
+2.  Create a **New Application** and give it a name.
+3.  Navigate to the **Bot** tab on the left.
+4.  Enable the following **Privileged Gateway Intents**:
+    *   `Presence Intent`
+    *   `Server Members Intent`
+    *   `Message Content Intent`
+5.  Copy your **Bot Token**.
+6.  Go to the **OAuth2** -> **URL Generator** tab:
+    *   Scopes: `bot`, `applications.commands`
+    *   Permissions: `Administrator` (or specific permissions for roles/messages)
+    *   Copy the URL and invite the bot to your server.
 
-- **2FA(İki Aşamalı Doğrulama Sistemi):** Hesabınıza farklı bir IP adresinden giriş yapıldığında, güvenliğiniz için Discord üzerinden size bir doğrulama mesajı gönderilir. Bu durumda, dilerseniz giriş yapan oyuncuyu sunucudan atabilir ya da doğrulama mesajını onaylayarak devam etmesine izin verebilirsiniz.
+### 3. Plugin Configuration
+1.  Place the `AgnHesapEsle.jar` into your `plugins` folder.
+2.  Restart your server to generate the configuration files.
+3.  Open `plugins/AgnHesapEsle/config.yml`.
+4.  Replace `token: "DISCORD_BOT_TOKEN"` with your actual Bot Token.
+5.  Fill in your `guild-id`, `log-channel-id`, and `information-channel-id`.
+6.  Restart the server or use `/link reload`.
 
-- **Dahili Gömülü Discord Botu:** Eklenti, harici bir bot kurulumuna gerek kalmadan kendi içerisinde çalışan bir entegre Discord botu barındırır.
-Bu sayede sistem, herhangi bir 3. parti uygulamaya ihtiyaç duymadan bağımsız olarak çalışabilir.
-Bot, Discord API üzerinden:
-Mesaj gönderme
-Rol atama
-Kullanıcı adı güncelleme
-Onay sistemi yönetimi
-gibi işlemleri doğrudan gerçekleştirebilir.
+---
 
-- **Onaylı Kullanıcı Eşleştirme Sistemi:** Kullanıcıların Minecraft hesaplarını Discord hesaplarıyla bağlamadan önce bir onay sürecinden geçmeleri gerekmektedir. Bu sistem, sunucuda yetkisiz kullanıcı eşleşmelerinin önüne geçmek ve güvenliği artırmak için geliştirilmiştir.
+## 🎮 Commands
 
-- **6 Adet Dil Desteği:**
-   - Çince (Chinese)
-   - Türkçe (Turkish)
-   - İngilizce (English)
-   - Fransızca (French)
-   - İspanyolca (Spanish)
-   - Almanca (German)
+### 🧊 Minecraft Commands
+*   `/link link` - Generate a unique linking code.
+*   `/link confirm` - Confirm the pending linked account.
+*   `/link 2fa <on/off>` - Enable or disable Discord security.
+*   `/link reload` - (Admin) Reload configuration and messages.
+*   `/link list` - (Admin) List all linked accounts.
 
-- **Kullanıcı Adı Güncelleme Sistemi:** Başarılı eşleştirme sonrasında, kullanıcının Discord üzerindeki görünen adı otomatik olarak Minecraft kullanıcı adı ile güncellenir.
-Bu özellik:
-Sunucu içi düzeni artırır
-Oyuncuların kimlik takibini kolaylaştırır
-Anonim kullanıcı adlarının önüne geçer
-Yapılandırma dosyası üzerinden bu özellik aktif/pasif hale getirilebilir.
+### 💬 Discord Commands
+*   `/link <code>` - Enter the code generated in Minecraft.
+*   `/info <user>` - Check the linked Minecraft account of a user.
+*   `/report <player> <reason>` - Report a player to the staff.
 
-- **Rol Atama ve Yetkilendirme Sistemi:** Eklenti, oyuncu eşleşmesini tamamladıktan sonra kullanıcının sahip olduğu özel üyelik durumuna göre Discord üzerindeki belirli rolleri otomatik olarak atar.
-Rol tanımlamaları config.yml üzerinden yapılır ve şu kurallar desteklenir:
-VIP, Premium, Elit gibi özel üyelik sistemleri
-Çoklu rol desteği (birden fazla rol aynı anda atanabilir)
+---
 
-- **Otomatik Rol Verme:**
-Oyuncu Hesabını Eşlediğinde, Configrasyonda belirlediğiniz, Verified-Rol-Id Oyuncuya Discord Üzerinden İletilir.
+## 🛠️ Developer Support
+If you encounter any issues or have questions, please reach out via our official support channels.
 
-- **GünlükÖdül Sistemi:**
-Discord Bilgilendirme Mesajı Üzerinden, Ödül kontrol Butonuna Basarak Ödüllerinizi Kontrol Edebilir, Her Güne özel ödüller belirleyebilirsiniz, Tamamen Özelleştirilebilir ödüller.
+**Agnes Project © 2026**
 
-###   Kurulum Talimatları
+---
 
-Yayınlanan jar dosyasını plugins/ klasörüne kopyalayın.
-Sunucuyu başlatın ve plugins/AgnHesapEsle/ altında config.yml oluşturulmasına izin verin.
-Gerekirse config.yml dosyasını düzenleyin.
+## 📝 Update Notes (v1.2.4)
 
-### Komutlar
-
-- **/hesapeşle eşle**: ➤ Discord botuna gönderilecek olan eşleştirme kodunu görüntüler.
-- **/hesapeşle kaldır**: ➤ Mevcut eşleştirme bağlantısını kaldırı
-- **/hesapeşle yenile**: ➤ messages.yml dosyasını yeniden yükler.
-- **/hesapeşle kodiptal**: ➤ Onay sürecindeki kodunuzu iptal eder.
-- **/hesapeşle liste** ➤ Hesabını eşleyen oyuncuların listesini gösterir.
-- **/hesapeşle sıfırla OyuncuAdı** ➤ Belirtilen oyuncunun eşleşme bağlantısını sıfırlar.
-
-### PLACEHOLDER
-- **%agnesesle_server_toplam_eslesme%**: Sunucudaki, Toplam Eşleşme Sayısını Gösterir
-- **%agnesesle_durum%**: Oyuncunun Eşledi mi, Eşlemedi mi Durumunu Gösterir.
-- **%agnesesle_discord_id%**: Kullanıcının Discord Id'sini gösterir.
-- **%agnesesle_discord_adi%**: Oyuncunun Discord Üzerinde'ki Adını Gösterir.
-- **%agnesesle_2fa_durum%**: Oyuncunun 2FA(İki Aşamalı Doğrulama) Durumunu gösterir.
-
-
-### İzinler
-
-```
-agnesesle.admin (Tüm Komutlara Erişim Sağlar.)
-```
-### Veritabanı
-- Veri Tabana Dosya .yml Üzeridir İleri Zamanlarda Geçiş Yapılacaktır.
-
-### Yapılandırma:
-
-<div align="center">
-<details>
-<summary>config.yml Örneği</summary>
-<a href="https://github.com/Agnesm2131/AgnHesapEsleme/blob/main/src/main/resources/config.yml" target="_blank" rel="noopener noreferrer">Tıkla</a>
-</details>
-</div>
-
-<div align="center">
-<details>
-<summary>messages_tr.yml Dosyası</summary>
-<a href="https://github.com/Agnesm2131/AgnHesapEsleme/blob/main/src/main/resources/langs/messages_tr.yml">Tıkla</a>
-</details>
-</div>
-
-### İletişim
-
-
-<details>
-<summary>İletişim</summary>
-
-Discord: **agnes9s_**
-Discord: **bentahsin**
-
-</details>
-
-
-
-### ENG
-
-## Requirements
-- Java 8 or a newer Version
-- Spigot or its forks (like Paper, Purpur) 
-- LuckPerms
-
-### FEATURES: (EN)
-
-- **Automatic Notification System:**  
-  The plugin automatically reports specific events happening on the Minecraft server to the Discord server. Through this system, player activities, match status, and special notifications are sent to relevant channels on Discord. Notifications can be customized via the `config.yml` file and support channel-based routing.
-
-- **2FA (Two-Factor Authentication System):**  
-  When someone logs into your account from a different IP address, a verification message is sent to you via Discord for security purposes. You can either kick the player from the server or approve the login via the verification message.
-
-- **Built-in Embedded Discord Bot:**  
-  The plugin includes a built-in integrated Discord bot, eliminating the need for an external bot setup.  
-  This allows the system to work independently without any third-party applications.  
-  The bot can directly perform operations such as:
-  - Sending messages  
-  - Assigning roles  
-  - Updating usernames  
-  - Managing the verification system
-
-- **Verified User Matching System:**  
-  Before users can link their Minecraft accounts to their Discord accounts, they must go through a verification process. This system is designed to prevent unauthorized user matches and enhance security on the server.
-
-- **Support for 6 Languages:**
-   - Chinese  
-   - Turkish  
-   - English  
-   - French  
-   - Spanish  
-   - German
-
-- **Username Update System:**  
-  After a successful account match, the user’s visible name on Discord is automatically updated to match their Minecraft username.  
-  This feature:
-    - Improves in-server order  
-    - Simplifies player identification  
-    - Prevents anonymous usernames  
-  It can be enabled/disabled via the configuration file.
-
-- **Role Assignment and Authorization System:**  
-  After matching, the plugin automatically assigns specific roles on Discord based on the player's membership status (e.g., VIP, Premium, Elite).  
-  Role definitions are managed via `config.yml` and support:
-    - Special membership roles  
-    - Multi-role assignment
-
- ## Installation Instructions
-
- 1. Copy the released `.jar` file into the `plugins/` folder.  
-2. Start the server and allow the plugin to generate the `config.yml` under `plugins/AgnHesapEsle/`.  
-3. Edit the `config.yml` file if necessary.
-
-## Commands
-
-- **/hesapeşle eşle**: ➤ Displays the match code to be sent to the Discord bot.  
-- **/hesapeşle kaldır**: ➤ Removes the current match link.  
-- **/hesapeşle yenile**: ➤ Reloads the `messages.yml` file.  
-- **/hesapeşle kodiptal**: ➤ Cancels the pending verification code.  
-- **/hesapeşle liste** ➤ Displays the list of players who have matched their accounts.  
-- **/hesapeşle sıfırla <PlayerName>** ➤ Resets the match link of the specified player.
-
-## PLACEHOLDER
-- **%agnesesle_server_toplam_eslesme%**: Displays the total number of matches on the server.
-- **%agnesesle_durum%**: Shows whether the player has matched or not.
-- **%agnesesle_discord_id%**: Displays the user's Discord ID.
-- **%agnesesle_discord_adi%**: Shows the player's name on Discord.
-- **%agnesesle_2fa_durum%**: Displays the player's 2FA (Two-Factor Authentication) status.
-
-## Contact
-
-<details>
-<summary>Contact</summary>
-
-Discord: **agnes9s_**
-Discord: **bentahsin**
-
-</details>
-
-
-
-## Permissions
-- agnesesle.admin (Grants access to all commands.)
-
-## Database
-- Data is stored in `.yml` files. Migration to a different system may be implemented in the future.
-
-## Configuration
-
-<div align="center">
-<details>
-<summary>config.yml Example</summary>
-<a href="https://github.com/Agnesm2131/AgnHesapEsleme/blob/main/src/main/resources/config.yml" target="_blank" rel="noopener noreferrer">Click</a>
-</details>
-</div>
-
-
-<div align="center">
-<details>
-<summary>messages_en.yml File</summary>
-<a href="https://github.com/Agnesm2131/AgnHesapEsleme/blob/main/src/main/resources/langs/messages_en.yml">Click</a>
-</details>
-</div>
+### 🛠 Improvements & Fixes
+*   **Folia Stability**: Rewrote the scheduler system using reflection to ensure 100% compatibility with Folia, Paper, and Spigot.
+*   **Booster System 2.0**: 
+    *   Completely refactored booster logic for better performance.
+    *   Added global in-game announcements when a booster claims rewards.
+    *   Improved cooldown tracking and localizable status messages.
+*   **Configuration Revamp**:
+    *   `config.yml` now features professional English comments and a cleaner structure.
+    *   Fixed a type mismatch warning for boolean configuration values.
+*   **Placeholder Fixes**: Corrected variable formats in language files (from `{var}` to `%var%`) for consistent parsing.
+*   **Soft Dependencies**: LuckPerms is now a `softdepend`. The plugin will load and function (except for role sync) even if LuckPerms is not installed.
+*   **Auto-Documentation**: The plugin now automatically generates the `README.txt` file inside the plugin folder for quick setup reference.
+*   **Bug Fixes**: 
+    *   Fixed `UnsupportedOperationException` on Folia/Canvas servers caused by legacy scheduler calls.
+    *   Fixed a crash issue where Folia timers were initialized with a 0-tick delay.
+    *   Added missing localization keys for the booster panel and information messages.

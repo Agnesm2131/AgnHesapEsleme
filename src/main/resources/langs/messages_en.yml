@@ -237,23 +237,43 @@ booster-message:
   button-claim: "🎁 Claim Rewards"
   button-status: "📊 View Remaining Time"
 
-eslestirme-message:
-  title: "🔗 Link Your Account and Earn Rewards!"
-  description: |
-    By securely linking your Minecraft account with your Discord account,
-    you can earn rewards and gain extra security benefits.
-  how-title: "📌 How Do I Link?"
-  how-text: |
-    • Join the server and use `/hesapesle eşle`
-    • Enter the code by clicking **Link** in this channel
-    • Complete the process in-game with `/hesapesle onayla <code>`
-  advantages-title: "🎁 Advantages"
-  advantages-text: |
-    • Your Discord username is synced with your Minecraft name
-    • Extra security with Discord protection
-    • Earn **special in-game rewards**
-  footer: "www.servername.com"
-  button-status: "🔗 Account Status"
-  button-link: "✔ Link"
-  button-unlink: "❌ Unlink"
-  button-reward: "🎁 Check Rewards"
+
+information-messages:
+  eslestirme-message:
+    title: "🔗 Link Your Account and Earn Rewards!"
+    description: |
+      By securely linking your Minecraft account with your Discord account,
+      you can earn rewards and gain extra security benefits.
+    how-title: "📌 How Do I Link?"
+    how-text: |
+      • Join the server and use `/hesapesle eşle`
+      • Enter the code by clicking **Link** in this channel
+      • Complete the process in-game with `/hesapesle onayla <code>`
+    advantages-title: "🎁 Advantages"
+    advantages-text: |
+      • Your Discord username is synced with your Minecraft name
+      • Extra security with Discord protection
+      • Earn **special in-game rewards**
+    footer: "www.servername.com"
+    button-status: "🔗 Account Status"
+    button-link: "✔ Link"
+    button-unlink: "❌ Unlink"
+    button-reward: "🎁 Check Rewards"
+
+  booster-message:
+    title: "🚀 Server Booster Rewards"
+    description: "By boosting our server or having the booster rank, you can enjoy the following special rewards!"
+    rewards-title: "🎁 Available Rewards:"
+    rewards-empty: "No active rewards at the moment."
+    footer: "%server% Management"
+    button-claim: "🎁 Claim Rewards"
+    button-status: "📊 Check Status"
+
+booster-sistemi:
+  hesap-eslenmemis: "❌ You must link your account first to use this system!"
+  booster-degil: "❌ You don't have an active Booster role on our server."
+  bekleme-suresi: "⏳ You must wait **%time%** before claiming rewards again."
+  basarili: "✅ Your booster rewards have been delivered! Have fun."
+  durum-hazir: "✅ Your rewards are available now!"
+  durum-beklemede: "📊 Time remaining for next reward: **%time%**"
+  duyuru: "&6&lAGN &8» &e%player% &7has claimed their &dBooster &7rewards! You can use &d/discord &7to support us."

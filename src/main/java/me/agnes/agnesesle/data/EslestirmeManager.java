@@ -2,6 +2,7 @@ package me.agnes.agnesesle.data;
 
 import me.agnes.agnesesle.AgnesEsle;
 import me.agnes.agnesesle.discord.DiscordBot;
+import me.agnes.agnesesle.util.SchedulerUtil;
 import org.bukkit.Bukkit;
 
 import java.sql.*;
@@ -27,31 +28,27 @@ public class EslestirmeManager {
     public static void init() {
         loadEslesmeler();
 
-        AgnesEsle.getInstance().getServer().getScheduler().runTaskTimerAsynchronously(
-                AgnesEsle.getInstance(), new Runnable() {
-                    @Override
-                    public void run() {
-                        long now = System.currentTimeMillis();
-                        long expirationTime = 10 * 60 * 1000;
+        SchedulerUtil.runTimerAsync(() -> {
+            long now = System.currentTimeMillis();
+            long expirationTime = 10 * 60 * 1000;
 
-                        Iterator<Map.Entry<String, Long>> it = kodZamanlari.entrySet().iterator();
-                        while (it.hasNext()) {
-                            Map.Entry<String, Long> entry = it.next();
-                            if ((now - entry.getValue()) > expirationTime) {
-                                String kod = entry.getKey();
-                                kodlar.remove(kod);
-                                bekleyenKodlar.remove(kod);
-                                it.remove();
-                            }
-                        }
-                    }
-                }, 1200L, 1200L
-        );
+            Iterator<Map.Entry<String, Long>> it = kodZamanlari.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<String, Long> entry = it.next();
+                if ((now - entry.getValue()) > expirationTime) {
+                    String kod = entry.getKey();
+                    kodlar.remove(kod);
+                    bekleyenKodlar.remove(kod);
+                    it.remove();
+                }
+            }
+        }, 1200L, 1200L);
     }
 
     public static long getEslesmeTarihi(UUID uuid) {
         Long time = eslesmeZamanlari.get(uuid);
-        if (time != null) return time;
+        if (time != null)
+            return time;
         return -1L;
     }
 
@@ -70,7 +67,8 @@ public class EslestirmeManager {
     }
 
     public static UUID koduKontrolEt(String kod) {
-        if (kod == null) return null;
+        if (kod == null)
+            return null;
         return kodlar.get(kod.toUpperCase());
     }
 
@@ -78,8 +76,7 @@ public class EslestirmeManager {
         try {
             Connection conn = DatabaseManager.getConnection();
             PreparedStatement ps = conn.prepareStatement(
-                    "SELECT discord_id FROM eslestirmeler WHERE uuid=?"
-            );
+                    "SELECT discord_id FROM eslestirmeler WHERE uuid=?");
             ps.setString(1, uuid.toString());
             ResultSet rs = ps.executeQuery();
             String discordId = null;
@@ -96,14 +93,17 @@ public class EslestirmeManager {
     }
 
     public static boolean eslestir(UUID uuid, String discordId) {
-        if (uuid == null || discordId == null) return false;
-        if (eslesmeler.containsValue(discordId) || bekleyenEslesmeler.containsValue(discordId)) return false;
+        if (uuid == null || discordId == null)
+            return false;
+        if (eslesmeler.containsValue(discordId) || bekleyenEslesmeler.containsValue(discordId))
+            return false;
         bekleyenEslesmeler.put(uuid, discordId);
         return true;
     }
 
     public static boolean odulVerildiMi(UUID uuid) {
-        if (odulVerildiMap.containsKey(uuid)) return odulVerildiMap.get(uuid);
+        if (odulVerildiMap.containsKey(uuid))
+            return odulVerildiMap.get(uuid);
 
         try {
             Connection conn = DatabaseManager.getConnection();
@@ -128,68 +128,59 @@ public class EslestirmeManager {
     public static void odulVerildi(UUID uuid) {
         odulVerildiMap.put(uuid, true);
 
-        AgnesEsle.getInstance().getServer().getScheduler().runTaskAsynchronously(
-                AgnesEsle.getInstance(),
-                () -> {
-                    try {
-                        Connection conn = DatabaseManager.getConnection();
-                        PreparedStatement ps = conn.prepareStatement(
-                                "UPDATE eslestirmeler SET odul=? WHERE uuid=?"
-                        );
-                        ps.setInt(1, 1);
-                        ps.setString(2, uuid.toString());
-                        ps.executeUpdate();
-                        ps.close();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                }
-        );
+        SchedulerUtil.runAsync(() -> {
+            try {
+                Connection conn = DatabaseManager.getConnection();
+                PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE eslestirmeler SET odul=? WHERE uuid=?");
+                ps.setInt(1, 1);
+                ps.setString(2, uuid.toString());
+                ps.executeUpdate();
+                ps.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public static boolean onaylaEslesme(UUID uuid, String ip) {
         final String discordId = bekleyenEslesmeler.remove(uuid);
-        if (discordId == null) return false;
+        if (discordId == null)
+            return false;
 
         eslesmeler.put(uuid, discordId);
         eslesmeZamanlari.put(uuid, System.currentTimeMillis());
         kayitliIPler.put(uuid, ip);
         ikiFADurumu.put(uuid, false);
 
-        AgnesEsle.getInstance().getServer().getScheduler().runTaskAsynchronously(
-                AgnesEsle.getInstance(), () -> {
-                    try {
-                        Connection conn = DatabaseManager.getConnection();
+        SchedulerUtil.runAsync(() -> {
+            try {
+                Connection conn = DatabaseManager.getConnection();
 
-                        PreparedStatement ps = conn.prepareStatement(
-                                "INSERT OR REPLACE INTO eslestirmeler (uuid, discord_id, iki_fa, ip, odul) VALUES (?, ?, ?, ?, ?)"
-                        );
-                        ps.setString(1, uuid.toString());
-                        ps.setString(2, discordId);
-                        ps.setInt(3, 0);
-                        ps.setString(4, ip);
-                        ps.setInt(5, 0);
-                        ps.executeUpdate();
-                        ps.close();
+                PreparedStatement ps = conn.prepareStatement(
+                        "INSERT OR REPLACE INTO eslestirmeler (uuid, discord_id, iki_fa, ip, odul) VALUES (?, ?, ?, ?, ?)");
+                ps.setString(1, uuid.toString());
+                ps.setString(2, discordId);
+                ps.setInt(3, 0);
+                ps.setString(4, ip);
+                ps.setInt(5, 0);
+                ps.executeUpdate();
+                ps.close();
 
-                        if (!odulVerildiMi(uuid)) {
-                            Bukkit.getScheduler().runTask(
-                                    AgnesEsle.getInstance(),
-                                    () -> AgnesEsle.getInstance().odulVer(uuid)
-                            );
-                            odulVerildi(uuid);
-                        }
-
-                        DiscordBot bot = AgnesEsle.getInstance().getDiscordBot();
-                        if (bot != null) {
-                            bot.sendEslestirmeEmbed(uuid, discordId);
-                        }
-
-                    } catch (SQLException e) {
-                        logger.warning(e.getMessage());
-                    }
+                if (!odulVerildiMi(uuid)) {
+                    SchedulerUtil.runSync(() -> AgnesEsle.getInstance().odulVer(uuid));
+                    odulVerildi(uuid);
                 }
-        );
+
+                DiscordBot bot = AgnesEsle.getInstance().getDiscordBot();
+                if (bot != null) {
+                    bot.sendEslestirmeEmbed(uuid, discordId);
+                }
+
+            } catch (SQLException e) {
+                logger.warning(e.getMessage());
+            }
+        });
 
         return true;
     }
@@ -204,22 +195,17 @@ public class EslestirmeManager {
         kayitliIPler.remove(uuid);
 
         final UUID finalUuid = uuid;
-        AgnesEsle.getInstance().getServer().getScheduler().runTaskAsynchronously(
-                AgnesEsle.getInstance(), new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            Connection conn = DatabaseManager.getConnection();
-                            PreparedStatement ps = conn.prepareStatement("DELETE FROM eslestirmeler WHERE uuid=?");
-                            ps.setString(1, finalUuid.toString());
-                            ps.executeUpdate();
-                            ps.close();
-                        } catch (SQLException e) {
-                            logger.warning(e.getMessage());
-                        }
-                    }
-                }
-        );
+        SchedulerUtil.runAsync(() -> {
+            try {
+                Connection conn = DatabaseManager.getConnection();
+                PreparedStatement ps = conn.prepareStatement("DELETE FROM eslestirmeler WHERE uuid=?");
+                ps.setString(1, finalUuid.toString());
+                ps.executeUpdate();
+                ps.close();
+            } catch (SQLException e) {
+                logger.warning(e.getMessage());
+            }
+        });
     }
 
     public static Map<UUID, String> getTumEslesmeler() {
@@ -236,7 +222,8 @@ public class EslestirmeManager {
 
     public static UUID getUUIDByDiscordId(String discordId) {
         for (Map.Entry<UUID, String> entry : eslesmeler.entrySet()) {
-            if (entry.getValue().equals(discordId)) return entry.getKey();
+            if (entry.getValue().equals(discordId))
+                return entry.getKey();
         }
         return null;
     }
@@ -268,22 +255,19 @@ public class EslestirmeManager {
 
     public static void setBoosterSonAlim(UUID uuid, long time) {
         boosterZamanlari.put(uuid, time);
-        AgnesEsle.getInstance().getServer().getScheduler().runTaskAsynchronously(
-                AgnesEsle.getInstance(), () -> {
-                    try {
-                        Connection conn = DatabaseManager.getConnection();
-                        PreparedStatement ps = conn.prepareStatement(
-                                "UPDATE eslestirmeler SET is_booster=? WHERE uuid=?"
-                        );
-                        ps.setLong(1, time);
-                        ps.setString(2, uuid.toString());
-                        ps.executeUpdate();
-                        ps.close();
-                    } catch (SQLException e) {
-                        logger.warning("Booster zamanı güncellenirken hata: " + e.getMessage());
-                    }
-                }
-        );
+        SchedulerUtil.runAsync(() -> {
+            try {
+                Connection conn = DatabaseManager.getConnection();
+                PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE eslestirmeler SET is_booster=? WHERE uuid=?");
+                ps.setLong(1, time);
+                ps.setString(2, uuid.toString());
+                ps.executeUpdate();
+                ps.close();
+            } catch (SQLException e) {
+                logger.warning("Booster zamanı güncellenirken hata: " + e.getMessage());
+            }
+        });
     }
 
     public static void setIkiFA(UUID uuid, boolean durum) {
@@ -291,25 +275,19 @@ public class EslestirmeManager {
 
         final UUID finalUuid = uuid;
         final int val = durum ? 1 : 0;
-        AgnesEsle.getInstance().getServer().getScheduler().runTaskAsynchronously(
-                AgnesEsle.getInstance(), new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            Connection conn = DatabaseManager.getConnection();
-                            PreparedStatement ps = conn.prepareStatement(
-                                    "UPDATE eslestirmeler SET iki_fa=? WHERE uuid=?"
-                            );
-                            ps.setInt(1, val);
-                            ps.setString(2, finalUuid.toString());
-                            ps.executeUpdate();
-                            ps.close();
-                        } catch (SQLException e) {
-                            logger.warning(e.getMessage());
-                        }
-                    }
-                }
-        );
+        SchedulerUtil.runAsync(() -> {
+            try {
+                Connection conn = DatabaseManager.getConnection();
+                PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE eslestirmeler SET iki_fa=? WHERE uuid=?");
+                ps.setInt(1, val);
+                ps.setString(2, finalUuid.toString());
+                ps.executeUpdate();
+                ps.close();
+            } catch (SQLException e) {
+                logger.warning(e.getMessage());
+            }
+        });
     }
 
     public static String getKayitliIP(UUID uuid) {
@@ -321,30 +299,25 @@ public class EslestirmeManager {
 
         final UUID finalUuid = uuid;
         final String finalIp = ip;
-        AgnesEsle.getInstance().getServer().getScheduler().runTaskAsynchronously(
-                AgnesEsle.getInstance(), new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            Connection conn = DatabaseManager.getConnection();
-                            PreparedStatement ps = conn.prepareStatement(
-                                    "UPDATE eslestirmeler SET ip=? WHERE uuid=?"
-                            );
-                            ps.setString(1, finalIp);
-                            ps.setString(2, finalUuid.toString());
-                            ps.executeUpdate();
-                            ps.close();
-                        } catch (SQLException e) {
-                            logger.warning(e.getMessage());
-                        }
-                    }
-                }
-        );
+        SchedulerUtil.runAsync(() -> {
+            try {
+                Connection conn = DatabaseManager.getConnection();
+                PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE eslestirmeler SET ip=? WHERE uuid=?");
+                ps.setString(1, finalIp);
+                ps.setString(2, finalUuid.toString());
+                ps.executeUpdate();
+                ps.close();
+            } catch (SQLException e) {
+                logger.warning(e.getMessage());
+            }
+        });
     }
 
     public static boolean ipDegisti(UUID uuid, String yeniIP) {
         String eskiIP = kayitliIPler.get(uuid);
-        if (eskiIP == null) return false;
+        if (eskiIP == null)
+            return false;
         return !eskiIP.equals(yeniIP);
     }
 

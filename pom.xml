@@ -7,7 +7,7 @@
 
     <groupId>me.agnes</groupId>
     <artifactId>AgnHesapEsle</artifactId>
-    <version>1.2.3.1</version>
+    <version>1.2.5</version>
     <name>AgnHesapEsle</name>
     <description>Discord - Minecraft Hesap Eşleme Sistemi</description>
 
@@ -75,6 +75,15 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Folia API (sadece derleme için) -->
+        <dependency>
+            <groupId>dev.folia</groupId>
+            <artifactId>folia-api</artifactId>
+            <version>1.20.4-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+
+
         <dependency>
             <groupId>com.github.bentahsin</groupId>
             <artifactId>BenthPAPIManager</artifactId>
@@ -105,6 +114,12 @@
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
         </repository>
+
+        <repository>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+
 
         <repository>
             <id>placeholderapi</id>

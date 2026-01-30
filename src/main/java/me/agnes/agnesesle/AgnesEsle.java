@@ -14,6 +14,7 @@ import me.agnes.agnesesle.placeholders.PlayerPlaceholders;
 import me.agnes.agnesesle.placeholders.ServerPlaceholders;
 import me.agnes.agnesesle.util.LuckPermsUtil;
 import me.agnes.agnesesle.util.MessageUtil;
+import me.agnes.agnesesle.util.SchedulerUtil;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
@@ -87,8 +88,6 @@ public class AgnesEsle extends JavaPlugin {
 
         this.discordBot.start();
 
-
-
         PaperCommandManager commandManager = new PaperCommandManager(this);
 
         commandManager.getCommandReplacements().addReplacement("main_cmd", mainConfig.commands.main);
@@ -124,8 +123,7 @@ public class AgnesEsle extends JavaPlugin {
                         .withDebugMode()
                         .register(
                                 PlayerPlaceholders.class,
-                                ServerPlaceholders.class
-                        );
+                                ServerPlaceholders.class);
                 getLogger().info("PlaceholderAPI desteği başarıyla etkinleştirildi.");
             } catch (Exception e) {
                 getLogger().severe("BenthPAPIManager başlatılırken bir hata oluştu!");
@@ -136,6 +134,7 @@ public class AgnesEsle extends JavaPlugin {
         }
 
         createRewardsDataFile();
+        createReadmeFile();
         getLogger().info("Data Dosyaları Yüklendi!");
 
         getLogger().info("[AgnHesapEsle] Plugin başarıyla yüklendi!");
@@ -146,9 +145,11 @@ public class AgnesEsle extends JavaPlugin {
         if (this.papiMgr != null) {
             try {
                 this.papiMgr.unregisterAll();
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) {
+            }
         }
-        if (discordBot != null) discordBot.shutdown();
+        if (discordBot != null)
+            discordBot.shutdown();
         getLogger().info("[AgnHesapEsle] Plugin kapatıldı!");
     }
 
@@ -197,16 +198,18 @@ public class AgnesEsle extends JavaPlugin {
      * @param hook       Discord etkileşim kancası (Cevap vermek için)
      */
     public void handleRewardCheck(UUID playerUUID, InteractionHook hook) {
-        Bukkit.getScheduler().runTask(this, () -> {
+        SchedulerUtil.runSync(() -> {
 
             if (playerUUID == null) {
-                hook.sendMessage(MessageUtil.stripColors(MessageUtil.getMessage("odul-sistemi.eslesmemis"))).setEphemeral(true).queue();
+                hook.sendMessage(MessageUtil.stripColors(MessageUtil.getMessage("odul-sistemi.eslesmemis")))
+                        .setEphemeral(true).queue();
                 return;
             }
 
             Player player = Bukkit.getPlayer(playerUUID);
             if (player == null || !player.isOnline()) {
-                hook.sendMessage(MessageUtil.stripColors(MessageUtil.getMessage("odul-sistemi.oyuncu-cevrimdisi"))).setEphemeral(true).queue();
+                hook.sendMessage(MessageUtil.stripColors(MessageUtil.getMessage("odul-sistemi.oyuncu-cevrimdisi")))
+                        .setEphemeral(true).queue();
                 return;
             }
 
@@ -224,7 +227,6 @@ public class AgnesEsle extends JavaPlugin {
                 long minutes = (remainingMillis % 3600000) / 60000;
                 long seconds = (remainingMillis % 60000) / 1000;
 
-
                 Map<String, String> timeVars = new HashMap<>();
                 timeVars.put("hours", String.format("%02d", hours));
                 timeVars.put("minutes", String.format("%02d", minutes));
@@ -235,7 +237,9 @@ public class AgnesEsle extends JavaPlugin {
                 Map<String, String> msgVars = new HashMap<>();
                 msgVars.put("time", timeString);
 
-                hook.sendMessage(MessageUtil.stripColors(MessageUtil.getMessage("odul-sistemi.bekleme-suresi", msgVars))).setEphemeral(true).queue();
+                hook.sendMessage(
+                        MessageUtil.stripColors(MessageUtil.getMessage("odul-sistemi.bekleme-suresi", msgVars)))
+                        .setEphemeral(true).queue();
                 return;
             }
 
@@ -246,12 +250,12 @@ public class AgnesEsle extends JavaPlugin {
             }
 
             rewardsData.set(path, now);
-            Bukkit.getScheduler().runTaskAsynchronously(this, this::saveRewardsDataConfig);
+            SchedulerUtil.runAsync(this::saveRewardsDataConfig);
 
-            hook.sendMessage(MessageUtil.stripColors(MessageUtil.getMessage("odul-sistemi.basarili"))).setEphemeral(true).queue();
+            hook.sendMessage(MessageUtil.stripColors(MessageUtil.getMessage("odul-sistemi.basarili")))
+                    .setEphemeral(true).queue();
         });
     }
-
 
     public void odulVer(UUID uuid) {
         Player player = Bukkit.getPlayer(uuid);
@@ -279,6 +283,36 @@ public class AgnesEsle extends JavaPlugin {
     public void reloadConfig() {
         if (configManager != null) {
             configManager.reload(mainConfig, "config.yml");
+        }
+    }
+
+    private void createReadmeFile() {
+        File file = new File(getDataFolder(), "README.txt");
+        if (file.exists())
+            return;
+
+        try (java.io.PrintWriter writer = new java.io.PrintWriter(file)) {
+            writer.println("# AgnAccountLinking - Advanced Minecraft & Discord Integration");
+            writer.println("");
+            writer.println("Need help? Follow these steps to set up your plugin:");
+            writer.println("");
+            writer.println("1. Create a Discord Bot at https://discord.com/developers/applications");
+            writer.println("2. Enable ALL Privileged Gateway Intents (Presence, Members, Content)");
+            writer.println("3. Copy your Bot Token and paste it into config.yml");
+            writer.println(
+                    "4. Invite the bot using OAuth2 URL Generator (bot + applications.commands + Administrator)");
+            writer.println("5. Fill in the guild-id, log-channel-id, and information-channel-id in config.yml");
+            writer.println("6. Restart the server or use /link reload");
+            writer.println("");
+            writer.println("Commands:");
+            writer.println("- /link link: Generate a link code");
+            writer.println("- /link confirm: Confirm the link in Minecraft");
+            writer.println("- /link list: (Admin) List all linked accounts");
+            writer.println("");
+            writer.println("Thank you for using Agnes Account Linking!");
+            writer.flush();
+        } catch (java.io.IOException e) {
+            getLogger().warning("Could not create README.txt file: " + e.getMessage());
         }
     }
 }

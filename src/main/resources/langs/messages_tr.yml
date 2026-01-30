@@ -253,17 +253,9 @@ discord-odul-butonu:
   kontrol-ediliyor: "🎁 Ödül durumu kontrol ediliyor..."
 
 
+
+
 information-messages:
-
-  booster-message:
-    title: "💜 Sunucu Takviye (Booster) Paneli"
-    description: "Sunucumuza boost basarak bizlere destek olduğunuz için teşekkürler!"
-    rewards-title: "🎁 Mevcut Booster Ödülleri"
-    rewards-empty: "Ödül bulunamadı."
-    footer: "%server% | Takviye Sistemi"
-    button-claim: "🎁 Ödülleri Teslim Al"
-    button-status: "📊 Kalan Süremi Gör"
-
   eslestirme-message:
     title: "🔗 Hesabınızı Eşleştirip Ödüller Kazanın!"
     description: |
@@ -284,3 +276,21 @@ information-messages:
     button-link: "✔ Eşleştir"
     button-unlink: "❌ Eşleşmeyi Kaldır"
     button-reward: "🎁 Ödülleri Kontrol Et"
+
+  booster-message:
+    title: "🚀 Sunucu Destekçisi Ödülleri"
+    description: "Sunucumuza nitro basarak veya booster rütbesine sahip olarak aşağıdaki özel ödüllerden yararlanabilirsiniz!"
+    rewards-title: "🎁 Mevcut Ödüller:"
+    rewards-empty: "Şu an aktif bir ödül bulunmuyor."
+    footer: "%server% Yönetimi"
+    button-claim: "🎁 Ödülleri Al"
+    button-status: "📊 Durum Kontrol"
+
+booster-sistemi:
+  hesap-eslenmemis: "❌ Bu sistemi kullanabilmek için önce hesabınızı eşleştirmelisiniz!"
+  booster-degil: "❌ Sunucumuzda aktif bir Booster rolünüz bulunamadı."
+  bekleme-suresi: "⏳ Ödülü tekrar alabilmek için **%time%** beklemelisiniz."
+  basarili: "✅ Booster ödülleriniz başarıyla teslim edildi! İyi oyunlar."
+  durum-hazir: "✅ Ödülleriniz şu an alınabilir durumda!"
+  durum-beklemede: "📊 Bir sonraki ödül için kalan süre: **%time%**"
+  duyuru: "&6&lAGN &8» &e%player% &7isimli oyuncu &dBooster &7ödüllerini aldı! Sen de destek olmak için &d/discord &7yazabilirsin."
